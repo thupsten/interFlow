@@ -93,7 +93,7 @@
 
 .kanban-column {
   background: #f8fafc;
-  border-radius: 1rem;
+  // border-radius: 1rem;
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 200px);
@@ -251,7 +251,7 @@
 
 .modal-content {
   background: white;
-  border-radius: 1rem;
+  // border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 }

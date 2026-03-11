@@ -83,7 +83,7 @@ input::placeholder {
 .surface-card {
   background: #ffffff;
   border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 1rem;
+  // border-radius: 1rem;
   box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
 }
 
@@ -114,7 +114,7 @@ input::placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 1rem;
+  // border-radius: 1rem;
   color: #ffffff;
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.25);
@@ -126,7 +126,7 @@ input::placeholder {
   padding: 1.1rem;
   background: #ffffff;
   border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 1rem;
+  // border-radius: 1rem;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
 }
 
@@ -198,3 +198,8 @@ input::placeholder {
 .border-primary { border-color: var(--primary) !important; }
 .text-success { color: var(--secondary) !important; }
 .bg-success { background-color: var(--secondary) !important; }
+
+
+.card{
+  border-radius: 0 !important;
+}
