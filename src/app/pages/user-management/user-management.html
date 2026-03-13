@@ -226,6 +226,7 @@
           <select class="form-select" [(ngModel)]="inviteForm.role" [disabled]="inviting()">
             <option value="user">Employee</option>
             <option value="manager">Manager</option>
+            <option value="it_manager">IT Manager</option>
             <option value="admin">Admin</option>
           </select>
           <div class="form-text">
@@ -237,6 +238,10 @@
               @case ('manager') {
                 <i class="bi bi-briefcase-fill text-primary me-1"></i>
                 Can manage assigned projects, review interests, create tasks
+              }
+              @case ('it_manager') {
+                <i class="bi bi-ticket-perforated text-info me-1"></i>
+                Can manage IT support tickets, view who raised what
               }
               @case ('user') {
                 <i class="bi bi-person-fill text-secondary me-1"></i>

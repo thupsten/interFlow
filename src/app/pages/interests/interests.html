@@ -50,9 +50,36 @@
       <p>No {{ selectedStatus() }} requests to show</p>
     </div>
   } @else {
+    <!-- Bulk actions for pending -->
+    @if (selectedStatus() === 'pending' && pendingInterests().length > 0) {
+      <div class="bulk-actions">
+        <label class="bulk-actions__select-all">
+          <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll()" />
+          Select all {{ pendingInterests().length }} pending
+        </label>
+        @if (selectedCount() > 0) {
+          <div class="bulk-actions__buttons">
+            <span class="bulk-actions__count">{{ selectedCount() }} selected</span>
+            <button class="btn btn-success btn-sm" [disabled]="bulkActionLoading()" (click)="bulkApprove()">
+              <i class="bi bi-check-lg me-1"></i> Approve selected
+            </button>
+            <button class="btn btn-outline-danger btn-sm" [disabled]="bulkActionLoading()" (click)="bulkReject()">
+              <i class="bi bi-x-lg me-1"></i> Reject selected
+            </button>
+          </div>
+        }
+      </div>
+    }
+
     <div class="interest-list">
       @for (interest of filteredInterests(); track interest.id) {
         <div class="interest-card" [class.interest-card--pending]="interest.status === 'pending'" [class.interest-card--approved]="interest.status === 'approved'" [class.interest-card--rejected]="interest.status === 'rejected'">
+          @if (interest.status === 'pending') {
+            <div class="interest-card__checkbox">
+              <input type="checkbox" [checked]="selectedIds().has(interest.id)" (change)="toggleSelect(interest.id)" />
+            </div>
+          }
+          <div class="interest-card__body">
           <!-- User Info - Big and Clear -->
           <div class="interest-card__user">
             <span class="avatar avatar--lg">{{ getInitials(interest.user?.full_name || '') }}</span>
@@ -131,6 +158,7 @@
               <i class="bi bi-sticky me-1"></i> Note: {{ interest.review_note }}
             </div>
           }
+          </div>
         </div>
       }
     </div>

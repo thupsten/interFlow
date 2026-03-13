@@ -59,7 +59,7 @@
             }
           </div>
           <div class="member-card__badges">
-            <span class="badge bg-{{ getRoleBadgeClass(user.role) }}">{{ user.role }}</span>
+            <span class="badge bg-{{ getRoleBadgeClass(user.role) }}">{{ getRoleLabel(user.role) }}</span>
             <span class="badge bg-{{ getStatusBadgeClass(user.status) }}">{{ user.status }}</span>
           </div>
           @if (api.isAdmin() && user.id !== api.user()?.id) {
@@ -71,6 +71,7 @@
               >
                 <option value="admin">Admin</option>
                 <option value="manager">Manager</option>
+                <option value="it_manager">IT Manager</option>
                 <option value="user">User</option>
               </select>
             </div>
@@ -128,6 +129,7 @@
           <select class="form-select" [(ngModel)]="inviteForm.role" [disabled]="inviting()">
             <option value="user">Employee</option>
             <option value="manager">Manager</option>
+            <option value="it_manager">IT Manager</option>
             <option value="admin">Admin</option>
           </select>
           <div class="form-text">
@@ -139,6 +141,10 @@
               @case ('manager') {
                 <i class="bi bi-briefcase-fill text-primary me-1"></i>
                 Can manage assigned projects
+              }
+              @case ('it_manager') {
+                <i class="bi bi-ticket-perforated text-info me-1"></i>
+                Can manage IT support tickets
               }
               @case ('user') {
                 <i class="bi bi-person-fill text-secondary me-1"></i>

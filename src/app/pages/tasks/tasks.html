@@ -4,6 +4,9 @@
       <h1 class="page__title">Tasks</h1>
       <p class="page__subtitle">Manage and track your tasks</p>
     </div>
+    <button class="btn btn-outline-secondary" (click)="exportTasks()" [disabled]="exporting()">
+      <i class="bi bi-download me-2"></i> Export CSV
+    </button>
   </div>
 
   <!-- Filters -->

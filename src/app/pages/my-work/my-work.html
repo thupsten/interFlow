@@ -32,6 +32,53 @@
       <span>Loading your work...</span>
     </div>
   } @else {
+    <!-- Time Logs Chart & Recent Entries -->
+    <div class="time-log-section">
+      <div class="time-log-chart-card">
+        <h3 class="time-log-chart-title">
+          <i class="bi bi-bar-chart me-2"></i>My Time Logs (Last 7 Days)
+        </h3>
+        <div class="time-log-chart-container">
+          <canvas #timeLogChartRef></canvas>
+        </div>
+      </div>
+      <div class="time-log-entries-card">
+        <h3 class="time-log-entries-title">
+          <i class="bi bi-clock-history me-2"></i>Recent Entries
+          <span class="time-log-badge">{{ myTimeLogs().length }}</span>
+          <a routerLink="/my-time-logs" class="time-log-view-all">View all</a>
+        </h3>
+        @if (myTimeLogs().length === 0) {
+          <div class="time-log-empty">
+            <i class="bi bi-clock"></i>
+            <p>No time logged yet</p>
+            <span>Expand a task and click "Log Time" to track your work</span>
+          </div>
+        } @else {
+          <div class="time-log-entries-list">
+            @for (log of myTimeLogs().slice(0, 8); track log.id) {
+              <div class="time-log-entry">
+                <div class="time-log-entry__icon">
+                  <i class="bi bi-clock-fill"></i>
+                </div>
+                <div class="time-log-entry__content">
+                  <strong>{{ getTimeLogTaskTitle(log) }}</strong>
+                  <span class="time-log-entry__project">{{ getTimeLogProjectTitle(log) }}</span>
+                  @if (log.description) {
+                    <span class="time-log-entry__desc">{{ log.description }}</span>
+                  }
+                </div>
+                <div class="time-log-entry__meta">
+                  <span class="time-log-entry__hours">{{ log.hours }}h</span>
+                  <span class="time-log-entry__date">{{ formatDate(log.log_date) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
     <div class="content-grid">
       <!-- Tasks Section -->
       <div class="section tasks-section">

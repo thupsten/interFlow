@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Api } from '../../services/api';
 import { SnackbarService } from '../../services/snackbar.service';
 import { TaskService } from '../../services/task.service';
+import { ExportService } from '../../services/export.service';
 import type { Task } from '../../interfaces/database.types';
 
 @Component({
@@ -16,8 +17,10 @@ export class Tasks implements OnInit {
   readonly api = inject(Api);
   readonly taskService = inject(TaskService);
   readonly snackbar = inject(SnackbarService);
+  readonly exportService = inject(ExportService);
 
   readonly loading = signal(true);
+  readonly exporting = signal(false);
   readonly tasks = signal<Task[]>([]);
   readonly searchQuery = signal('');
   readonly selectedStatus = signal<string>('all');
@@ -101,5 +104,17 @@ export class Tasks implements OnInit {
   isOverdue(date: string | null): boolean {
     if (!date) return false;
     return new Date(date) < new Date();
+  }
+
+  async exportTasks(): Promise<void> {
+    this.exporting.set(true);
+    try {
+      await this.exportService.exportTasks();
+      this.snackbar.success('Tasks exported');
+    } catch {
+      this.snackbar.error('Export failed');
+    } finally {
+      this.exporting.set(false);
+    }
   }
 }

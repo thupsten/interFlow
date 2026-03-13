@@ -1,0 +1,161 @@
+<div class="my-time-logs-page">
+  <div class="page-header">
+    <h1 class="page-title">
+      <i class="bi bi-clock-history me-2"></i>My Time Logs
+    </h1>
+    <p class="page-subtitle">View and track your logged time across all projects</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner-border spinner-border-sm me-2"></span> Loading your time logs...
+    </div>
+  } @else {
+    <!-- Period Filter -->
+    <div class="period-tabs mb-4">
+      <button class="period-tab" [class.active]="periodFilter() === 'week'" (click)="setPeriod('week')">Week</button>
+      <button class="period-tab" [class.active]="periodFilter() === 'month'" (click)="setPeriod('month')">Month</button>
+      <button class="period-tab" [class.active]="periodFilter() === 'year'" (click)="setPeriod('year')">Year</button>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-card mb-4">
+      <h3><i class="bi bi-bar-chart me-2"></i>Hours Logged (Last 30 Days)</h3>
+      <div class="chart-container">
+        <canvas #chartRef></canvas>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-card mb-4">
+      <div class="summary-item">
+        <span class="summary-value">{{ totalHours().toFixed(1) }}h</span>
+        <span class="summary-label">Total ({{ periodFilter() }})</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-value">{{ filteredLogs().length }}</span>
+        <span class="summary-label">Entries</span>
+      </div>
+    </div>
+
+    <!-- Detailed Time Logs List -->
+    <div class="logs-card">
+      <div class="logs-card-header">
+        <h3><i class="bi bi-list-ul me-2"></i>Time Log Details</h3>
+        <div class="logs-filters">
+          <select class="form-control form-control-sm project-filter" [ngModel]="projectFilter()" (ngModelChange)="projectFilter.set($event)">
+            <option value="">All projects</option>
+            @for (proj of uniqueProjects(); track proj.id) {
+              <option [value]="proj.id">{{ proj.title }}</option>
+            }
+          </select>
+          <div class="sort-toggle">
+            <button class="btn btn-sm" [class.btn-primary]="sortOrder() === 'recent'" [class.btn-outline-secondary]="sortOrder() !== 'recent'" (click)="sortOrder.set('recent')">
+              <i class="bi bi-arrow-down-short me-1"></i> Recent
+            </button>
+            <button class="btn btn-sm" [class.btn-primary]="sortOrder() === 'oldest'" [class.btn-outline-secondary]="sortOrder() !== 'oldest'" (click)="sortOrder.set('oldest')">
+              <i class="bi bi-arrow-up-short me-1"></i> Oldest
+            </button>
+          </div>
+        </div>
+      </div>
+      @if (filteredLogs().length === 0) {
+        <div class="empty-state">
+          <i class="bi bi-clock"></i>
+          <p>No time logs for this period</p>
+          <span>Log time on your tasks from My Work or Task Board</span>
+        </div>
+      } @else {
+        <div class="logs-list">
+          @for (log of filteredLogs(); track log.id) {
+            <div class="log-item" [class.expanded]="isExpanded(log.id)">
+              <div class="log-item__main" (click)="toggleLogDetail(log.id)">
+                <div class="log-item__icon">
+                  <i class="bi bi-clock-fill"></i>
+                </div>
+                <div class="log-item__content">
+                  <strong>{{ getTaskTitle(log) }}</strong>
+                  <span class="log-item__project">{{ getProjectTitle(log) }}</span>
+                </div>
+                <div class="log-item__meta">
+                  <span class="log-item__hours">{{ log.hours }}h</span>
+                  <span class="log-item__date">{{ formatDate(log.log_date) }}</span>
+                </div>
+                <i class="bi log-item__chevron" [class.bi-chevron-down]="!isExpanded(log.id)" [class.bi-chevron-up]="isExpanded(log.id)"></i>
+              </div>
+              @if (isExpanded(log.id)) {
+                <div class="log-item__detail">
+                  @if (isEditing(log.id)) {
+                    <div class="log-edit-form" (click)="$event.stopPropagation()">
+                      <div class="form-group">
+                        <label class="form-label">Task</label>
+                        <select class="form-control" [ngModel]="editForm().task_id" (ngModelChange)="editForm.update(f => ({ ...f, task_id: $event }))">
+                          @for (task of getTasksForEdit(log); track task.id) {
+                            <option [value]="task.id">{{ task.title }} ({{ task.project?.title || '—' }})</option>
+                          }
+                        </select>
+                      </div>
+                      <div class="edit-form-grid">
+                        <div class="form-group">
+                          <label class="form-label">Hours</label>
+                          <input type="number" class="form-control" [ngModel]="editForm().hours" (ngModelChange)="editForm.update(f => ({ ...f, hours: +$event }))" min="0.25" step="0.25" />
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Date</label>
+                          <input type="date" class="form-control" [ngModel]="editForm().log_date" (ngModelChange)="editForm.update(f => ({ ...f, log_date: $event }))" />
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" [ngModel]="editForm().description" (ngModelChange)="editForm.update(f => ({ ...f, description: $event }))" rows="3" placeholder="What did you work on?"></textarea>
+                      </div>
+                      <div class="edit-form-actions">
+                        <button class="btn btn-sm btn-secondary" (click)="cancelEdit()">Cancel</button>
+                        <button class="btn btn-sm btn-primary" (click)="saveEdit(log)" [disabled]="savingEdit() || editForm().hours <= 0">
+                          @if (savingEdit()) {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                          }
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="log-detail-grid">
+                      <div class="log-detail-item">
+                        <span class="log-detail-label">Task</span>
+                        <span>{{ getTaskTitle(log) }}</span>
+                      </div>
+                      <div class="log-detail-item">
+                        <span class="log-detail-label">Project</span>
+                        <span>{{ getProjectTitle(log) }}</span>
+                      </div>
+                      <div class="log-detail-item">
+                        <span class="log-detail-label">Hours</span>
+                        <span><strong>{{ log.hours }}h</strong></span>
+                      </div>
+                      <div class="log-detail-item">
+                        <span class="log-detail-label">Date</span>
+                        <span>{{ formatDate(log.log_date) }}</span>
+                      </div>
+                      <div class="log-detail-item">
+                        <span class="log-detail-label">Logged at</span>
+                        <span>{{ formatTime(log.created_at) }}</span>
+                      </div>
+                    </div>
+                    <div class="log-detail-desc">
+                      <span class="log-detail-label">Description</span>
+                      <p>{{ log.description || 'No description' }}</p>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-2" (click)="startEdit(log); $event.stopPropagation()">
+                      <i class="bi bi-pencil me-1"></i> Edit
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

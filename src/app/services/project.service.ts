@@ -260,6 +260,46 @@ export class ProjectService {
     if (error) throw error;
   }
 
+  /** Bulk approve multiple interest requests. */
+  async bulkApproveInterest(ids: string[], note?: string): Promise<void> {
+    const userId = this.api.user()?.id;
+    if (!userId) throw new Error('Not authenticated');
+    if (!ids.length) return;
+
+    const { error } = await this.api.supabase
+      .from('interest_requests')
+      .update({
+        status: 'approved',
+        reviewed_by: userId,
+        review_note: note,
+        reviewed_at: new Date().toISOString(),
+      })
+      .in('id', ids)
+      .eq('status', 'pending');
+
+    if (error) throw error;
+  }
+
+  /** Bulk reject multiple interest requests. */
+  async bulkRejectInterest(ids: string[], note?: string): Promise<void> {
+    const userId = this.api.user()?.id;
+    if (!userId) throw new Error('Not authenticated');
+    if (!ids.length) return;
+
+    const { error } = await this.api.supabase
+      .from('interest_requests')
+      .update({
+        status: 'rejected',
+        reviewed_by: userId,
+        review_note: note,
+        reviewed_at: new Date().toISOString(),
+      })
+      .in('id', ids)
+      .eq('status', 'pending');
+
+    if (error) throw error;
+  }
+
   async getTags(): Promise<Tag[]> {
     const { data, error } = await this.api.supabase
       .from('tags')
@@ -321,6 +361,24 @@ export class ProjectService {
 
     const { data, error } = await this.api.supabase
       .from('project_managers')
+      .select(`
+        project:projects(
+          *,
+          creator:profiles!projects_created_by_fkey(*),
+          managers:project_managers(user:profiles(*)),
+          tags:project_tags(tag:tags(*))
+        )
+      `)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return this.mapProjects(data?.map((d) => d.project).filter(Boolean) || []);
+  }
+
+  /** Get projects for a specific user (admin/manager viewing employee). */
+  async getProjectsForUser(userId: string): Promise<Project[]> {
+    const { data, error } = await this.api.supabase
+      .from('project_contributors')
       .select(`
         project:projects(
           *,

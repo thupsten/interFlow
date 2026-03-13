@@ -5,6 +5,7 @@ import { Api } from '../../services/api';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ProjectService } from '../../services/project.service';
 import { FavoriteService } from '../../services/favorite.service';
+import { ExportService } from '../../services/export.service';
 import type { Project, Tag } from '../../interfaces/database.types';
 
 @Component({
@@ -19,8 +20,10 @@ export class Projects implements OnInit {
   readonly projectService = inject(ProjectService);
   readonly favoriteService = inject(FavoriteService);
   readonly snackbar = inject(SnackbarService);
+  readonly exportService = inject(ExportService);
 
   readonly loading = signal(true);
+  readonly exporting = signal(false);
   readonly projects = signal<Project[]>([]);
   readonly tags = signal<Tag[]>([]);
   readonly searchQuery = signal('');
@@ -161,5 +164,17 @@ export class Projects implements OnInit {
       day: 'numeric',
       year: 'numeric',
     });
+  }
+
+  async exportProjects(): Promise<void> {
+    this.exporting.set(true);
+    try {
+      await this.exportService.exportProjects();
+      this.snackbar.success('Projects exported');
+    } catch {
+      this.snackbar.error('Export failed');
+    } finally {
+      this.exporting.set(false);
+    }
   }
 }

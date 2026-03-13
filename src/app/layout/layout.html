@@ -37,6 +37,10 @@
         <button class="topbar__hamburger d-lg-none" (click)="toggleSidebar(); $event.stopPropagation()">
           <i class="bi bi-list"></i>
         </button>
+        <a routerLink="/search" class="topbar__search-link" title="Search">
+          <i class="bi bi-search"></i>
+          <span class="d-none d-md-inline ms-1">Search</span>
+        </a>
         <div class="topbar__breadcrumb">
           @if (api.profile(); as profile) {
             <span class="topbar__greeting">Welcome back, {{ profile.full_name.split(' ')[0] }}</span>

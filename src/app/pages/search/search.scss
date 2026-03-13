@@ -1,0 +1,150 @@
+.search-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 1.5rem 0;
+
+  &__header {
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  &__subtitle {
+    color: #64748b;
+    margin: 0.25rem 0 0;
+  }
+}
+
+.search-box {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+
+  &__input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    }
+  }
+
+  &__btn {
+    padding: 0.75rem 1.25rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.search-loading {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.search-empty {
+  padding: 3rem;
+  text-align: center;
+  color: #64748b;
+
+  i {
+    font-size: 3rem;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0.5rem 0 0;
+  }
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    background: #f0fdfa;
+  }
+
+  &__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e0f2fe;
+    color: var(--primary);
+    border-radius: 0.5rem;
+
+    &--task {
+      background: #dbeafe;
+      color: #2563eb;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    display: block;
+    color: #1e293b;
+  }
+
+  &__project {
+    font-size: 0.8125rem;
+    color: #64748b;
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__arrow {
+    color: #cbd5e1;
+    font-size: 1.25rem;
+  }
+}

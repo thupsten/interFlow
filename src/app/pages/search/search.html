@@ -1,0 +1,56 @@
+<div class="search-page">
+  <div class="search-page__header">
+    <h1 class="search-page__title"><i class="bi bi-search me-2"></i>Search</h1>
+    <p class="search-page__subtitle">Find projects and tasks by title or description</p>
+  </div>
+
+  <div class="search-box">
+    <input
+      type="text"
+      class="search-box__input"
+      placeholder="Search projects and tasks..."
+      [ngModel]="query()"
+      (ngModelChange)="query.set($event)"
+      (keydown.enter)="onSearch()"
+      autofocus
+    />
+    <button class="search-box__btn" (click)="onSearch()" [disabled]="loading()">
+      <i class="bi bi-search"></i> Search
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="search-loading">
+      <span class="spinner-border spinner-border-sm me-2"></span> Searching...
+    </div>
+  }
+
+  @if (isEmpty()) {
+    <div class="search-empty">
+      <i class="bi bi-search"></i>
+      <p>No results for "{{ query() }}"</p>
+    </div>
+  }
+
+  @if (hasResults()) {
+    <div class="search-results">
+      @for (r of results(); track r.type + r.id) {
+        <a [routerLink]="r.link" class="search-result-item">
+          <span class="search-result-item__icon" [class.search-result-item__icon--task]="r.type === 'task'">
+            <i class="bi" [ngClass]="getIcon(r.type)"></i>
+          </span>
+          <div class="search-result-item__content">
+            <strong class="search-result-item__title">{{ r.title }}</strong>
+            @if (r.projectTitle) {
+              <span class="search-result-item__project">{{ r.projectTitle }}</span>
+            }
+            @if (r.subtitle) {
+              <p class="search-result-item__subtitle">{{ r.subtitle }}</p>
+            }
+          </div>
+          <i class="bi bi-chevron-right search-result-item__arrow"></i>
+        </a>
+      }
+    </div>
+  }
+</div>

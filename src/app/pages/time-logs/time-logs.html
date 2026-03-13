@@ -1,0 +1,139 @@
+<div class="time-logs-page">
+  <div class="page-header">
+    <h1 class="page-title">
+      <i class="bi bi-clock-history me-2"></i>Time Logs
+    </h1>
+    <p class="page-subtitle">View employee time logs and project details</p>
+  </div>
+
+  @if (selectedEmployee(); as emp) {
+    <!-- Employee Detail View -->
+    <div class="detail-view">
+      <button class="btn btn-outline-secondary mb-3" (click)="backToList()">
+        <i class="bi bi-arrow-left me-1"></i> Back to Employees
+      </button>
+
+      <div class="employee-header">
+        <span class="employee-avatar">{{ getInitials(emp.full_name) }}</span>
+        <div class="employee-info">
+          <h2>{{ emp.full_name }}</h2>
+          <span class="employee-meta">{{ emp.email }} · {{ emp.department || 'No department' }}</span>
+        </div>
+      </div>
+
+      @if (loading()) {
+        <div class="loading-inline"><span class="spinner-border spinner-border-sm me-2"></span> Loading...</div>
+      } @else {
+        <!-- Period Filter -->
+        <div class="period-tabs mb-3">
+          <button class="period-tab" [class.active]="periodFilter() === 'week'" (click)="setPeriod('week')">Week</button>
+          <button class="period-tab" [class.active]="periodFilter() === 'month'" (click)="setPeriod('month')">Month</button>
+          <button class="period-tab" [class.active]="periodFilter() === 'year'" (click)="setPeriod('year')">Year</button>
+        </div>
+
+        <div class="detail-grid">
+          <!-- Chart -->
+          <div class="detail-card detail-card--chart">
+            <h3><i class="bi bi-bar-chart me-2"></i>Hours (Last 7 Days)</h3>
+            <div class="chart-container">
+              <canvas #chartRef></canvas>
+            </div>
+          </div>
+
+          <!-- Projects -->
+          <div class="detail-card">
+            <h3><i class="bi bi-folder me-2"></i>Projects ({{ employeeProjects().length }})</h3>
+            @if (employeeProjects().length === 0) {
+              <p class="empty-text">No projects assigned</p>
+            } @else {
+              <div class="project-list">
+                @for (p of employeeProjects(); track p.id) {
+                  <a [routerLink]="['/projects', p.id]" class="project-item">
+                    <span class="project-item__title">{{ p.title }}</span>
+                    <span class="project-item__status badge bg-{{ p.status === 'in_progress' ? 'primary' : 'secondary' }}">{{ p.status }}</span>
+                  </a>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Time Logs Table -->
+          <div class="detail-card detail-card--full">
+            <div class="detail-card__header">
+              <h3><i class="bi bi-clock-history me-2"></i>Time Logs <span class="badge bg-primary ms-2">{{ totalHours().toFixed(1) }}h total</span></h3>
+              <button class="btn btn-sm btn-outline-secondary" (click)="exportTimeLogs()" [disabled]="exporting()">
+                <i class="bi bi-download me-1"></i> Export CSV
+              </button>
+            </div>
+            @if (employeeTimeLogs().length === 0) {
+              <p class="empty-text">No time logs for this period</p>
+            } @else {
+              <div class="time-logs-table">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Task</th>
+                      <th>Project</th>
+                      <th>Hours</th>
+                      <th>Date</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (log of employeeTimeLogs(); track log.id) {
+                      <tr>
+                        <td>{{ getTimeLogTaskTitle(log) }}</td>
+                        <td>{{ getTimeLogProjectTitle(log) }}</td>
+                        <td><strong>{{ log.hours }}h</strong></td>
+                        <td>{{ formatDate(log.log_date) }}</td>
+                        <td class="text-muted">{{ log.description || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Employee List View -->
+    <div class="list-view">
+      <div class="search-bar mb-3">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Search employees by name, email or department..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </div>
+
+      @if (loading()) {
+        <div class="loading-inline"><span class="spinner-border spinner-border-sm me-2"></span> Loading employees...</div>
+      } @else if (filteredEmployees().length === 0) {
+        <div class="empty-state">
+          <i class="bi bi-people"></i>
+          <p>No employees found</p>
+        </div>
+      } @else {
+        <div class="employee-grid">
+          @for (emp of filteredEmployees(); track emp.id) {
+            <button class="employee-card" (click)="selectEmployee(emp)">
+              <span class="employee-card__avatar">{{ getInitials(emp.full_name) }}</span>
+              <div class="employee-card__info">
+                <strong>{{ emp.full_name }}</strong>
+                <span>{{ emp.email }}</span>
+                @if (emp.department) {
+                  <span class="employee-card__dept">{{ emp.department }}</span>
+                }
+              </div>
+              <i class="bi bi-chevron-right employee-card__arrow"></i>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

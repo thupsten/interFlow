@@ -1,13 +1,16 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Chart, registerables } from 'chart.js';
 import { Api } from '../../services/api';
 import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
 import { CommentService } from '../../services/comment.service';
 import { TimeTrackingService } from '../../services/time-tracking.service';
 import { SnackbarService } from '../../services/snackbar.service';
-import type { Task, Project, TaskComment } from '../../interfaces/database.types';
+import type { Task, Project, TaskComment, TimeLog } from '../../interfaces/database.types';
+
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-my-work',
@@ -16,7 +19,7 @@ import type { Task, Project, TaskComment } from '../../interfaces/database.types
   templateUrl: './my-work.html',
   styleUrl: './my-work.scss',
 })
-export class MyWork implements OnInit {
+export class MyWork implements OnInit, AfterViewInit {
   readonly api = inject(Api);
   readonly taskService = inject(TaskService);
   readonly projectService = inject(ProjectService);
@@ -42,6 +45,12 @@ export class MyWork implements OnInit {
   showTimeLogForm = false;
   timeLogForm = { hours: 1, description: '' };
   submittingTimeLog = false;
+
+  // Time log chart
+  @ViewChild('timeLogChartRef') timeLogChartRef!: ElementRef<HTMLCanvasElement>;
+  private timeLogChart: Chart | null = null;
+  readonly timeLogChartData = signal<{ date: string; hours: number }[]>([]);
+  readonly myTimeLogs = signal<TimeLog[]>([]);
 
   get filteredTasks() {
     const filter = this.selectedFilter();
@@ -78,15 +87,63 @@ export class MyWork implements OnInit {
   async loadData(): Promise<void> {
     this.loading.set(true);
     try {
-      const [tasks, projects] = await Promise.all([
+      const [tasks, projects, timeLogData, timeLogs] = await Promise.all([
         this.taskService.getMyTasks(),
         this.projectService.getMyProjects(),
+        this.timeTrackingService.getMyTimeLogsByDay(7),
+        this.timeTrackingService.getMyTimeLogs(),
       ]);
       this.myTasks.set(tasks);
       this.myProjects.set(projects);
+      this.timeLogChartData.set(timeLogData);
+      this.myTimeLogs.set(timeLogs);
+      setTimeout(() => this.renderTimeLogChart(), 100);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.timeLogChartData().length > 0) {
+      setTimeout(() => this.renderTimeLogChart(), 150);
+    }
+  }
+
+  private renderTimeLogChart(): void {
+    if (!this.timeLogChartRef?.nativeElement) return;
+    if (this.timeLogChart) this.timeLogChart.destroy();
+
+    const data = this.timeLogChartData();
+    const labels = data.map((d) => {
+      const date = new Date(d.date);
+      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    });
+    const values = data.map((d) => d.hours);
+
+    this.timeLogChart = new Chart(this.timeLogChartRef.nativeElement, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Hours Logged',
+            data: values,
+            backgroundColor: '#2B318D',
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 } },
+        },
+      },
+    });
   }
 
   setFilter(filter: 'all' | 'in_progress' | 'overdue' | 'completed'): void {
@@ -207,17 +264,34 @@ export class MyWork implements OnInit {
     const taskId = this.expandedTaskId();
     if (!taskId || this.timeLogForm.hours <= 0) return;
 
+    const { hours, description } = this.timeLogForm;
+    const task = this.myTasks().find((t) => t.id === taskId);
     this.submittingTimeLog = true;
     try {
-      await this.timeTrackingService.logTime(taskId, this.timeLogForm.hours, this.timeLogForm.description);
+      const log = await this.timeTrackingService.logTime(taskId, hours, description);
       this.showTimeLogForm = false;
       this.timeLogForm = { hours: 1, description: '' };
-      this.snackbar.success('Time logged successfully!');
-    } catch {
-      this.snackbar.error('Failed to log time');
+      this.myTimeLogs.update((logs) => [{ ...log, task } as TimeLog, ...logs]);
+      this.snackbar.success(`Logged ${hours} hour(s) on "${task?.title ?? 'task'}"`);
+      const timeLogData = await this.timeTrackingService.getMyTimeLogsByDay(7);
+      this.timeLogChartData.set(timeLogData);
+      setTimeout(() => this.renderTimeLogChart(), 100);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? 'Unknown error';
+      this.snackbar.error(`Failed to log time: ${msg}`);
     } finally {
       this.submittingTimeLog = false;
     }
+  }
+
+  getTimeLogTaskTitle(log: TimeLog): string {
+    const t = (log as { task?: { title?: string } }).task;
+    return t?.title ?? 'Unknown task';
+  }
+
+  getTimeLogProjectTitle(log: TimeLog): string {
+    const t = (log as { task?: { project?: { title?: string } } }).task;
+    return t?.project?.title ?? '—';
   }
 
   formatDate(date: string): string {

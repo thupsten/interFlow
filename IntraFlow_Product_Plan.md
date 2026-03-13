@@ -581,4 +581,6 @@ This document is the final reference baseline for implementation. Any future cha
 - task ownership rules
 - MVP scope discipline
 
-IntraFlow is not intended to copy every feature from ClickUp. The goal is to deliver a focused internal collaboration platform where projects are visible, people can express interest, work is approved and assigned properly, and progress is easy to track.
+IntraFlow is not intended to copy every feature from ClickUp. The goal is to deliver a focused internal collaboration platform where projects are visible, people can express interest, work is approved and assigned properly, and progress is easy to track. 
+
+

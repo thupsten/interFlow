@@ -163,6 +163,22 @@
     padding: 0.25rem;
   }
 
+  &__search-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    color: #64748b;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--primary-lighter);
+      color: var(--primary);
+    }
+  }
+
   &__greeting {
     font-size: 1rem;
     color: #334155;

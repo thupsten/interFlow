@@ -140,10 +140,21 @@ export class Team implements OnInit {
     }
   }
 
+  getRoleLabel(role: string): string {
+    const map: Record<string, string> = {
+      admin: 'Admin',
+      manager: 'Manager',
+      it_manager: 'IT Manager',
+      user: 'User',
+    };
+    return map[role] || role;
+  }
+
   getRoleBadgeClass(role: string): string {
     const map: Record<string, string> = {
       admin: 'danger',
       manager: 'primary',
+      it_manager: 'info',
       user: 'secondary',
     };
     return map[role] || 'secondary';

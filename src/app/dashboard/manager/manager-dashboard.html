@@ -188,6 +188,80 @@
         </div>
       </div>
 
+      <!-- Team Time Logs -->
+      <div class="dashboard-card dashboard-card--full">
+        <div class="card-header">
+          <h3><i class="bi bi-clock-history me-2"></i>Team Time Logs</h3>
+          <div class="period-tabs">
+            <button
+              class="period-tab"
+              [class.active]="timeLogPeriod() === 'week'"
+              (click)="setTimeLogPeriod('week')"
+            >
+              Week
+            </button>
+            <button
+              class="period-tab"
+              [class.active]="timeLogPeriod() === 'month'"
+              (click)="setTimeLogPeriod('month')"
+            >
+              Month
+            </button>
+            <button
+              class="period-tab"
+              [class.active]="timeLogPeriod() === 'year'"
+              (click)="setTimeLogPeriod('year')"
+            >
+              Year
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          @if (loadingTimeLogs()) {
+            <div class="loading-inline">
+              <span class="spinner-border spinner-border-sm me-2"></span> Loading time logs...
+            </div>
+          } @else if (teamTimeLogs().length === 0) {
+            <div class="empty-state">
+              <i class="bi bi-clock-history"></i>
+              <span>No time logs for this {{ timeLogPeriod() }}</span>
+              <p>Employee time logs will appear here when they log hours on project tasks</p>
+            </div>
+          } @else {
+            <div class="time-logs-summary mb-3">
+              <strong>Total: {{ totalTeamHours().toFixed(1) }} hours</strong>
+              ({{ teamTimeLogs().length }} entries)
+            </div>
+            <div class="time-logs-table">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Task</th>
+                    <th>Project</th>
+                    <th>Hours</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (log of teamTimeLogs(); track log.id) {
+                    <tr>
+                      <td>{{ getTimeLogUserName(log) }}</td>
+                      <td>{{ getTimeLogTaskName(log) }}</td>
+                      <td>{{ getTimeLogProjectName(log) }}</td>
+                      <td>{{ log.hours }}</td>
+                      <td>{{ log.log_date }}</td>
+                      <td class="text-muted">{{ log.description || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+
       <!-- Team Members -->
       <div class="dashboard-card dashboard-card--full">
         <div class="card-header">

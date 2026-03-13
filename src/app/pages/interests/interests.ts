@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgClass, TitleCasePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Api } from '../../services/api';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ProjectService } from '../../services/project.service';
@@ -9,7 +10,7 @@ import type { InterestRequest } from '../../interfaces/database.types';
 @Component({
   selector: 'app-interests',
   standalone: true,
-  imports: [RouterLink, NgClass, TitleCasePipe],
+  imports: [RouterLink, NgClass, TitleCasePipe, FormsModule],
   templateUrl: './interests.html',
   styleUrl: './interests.scss',
 })
@@ -21,11 +22,25 @@ export class Interests implements OnInit {
   readonly loading = signal(true);
   readonly interests = signal<InterestRequest[]>([]);
   readonly selectedStatus = signal<string>('pending');
+  readonly selectedIds = signal<Set<string>>(new Set());
+  readonly bulkActionLoading = signal(false);
 
   readonly filteredInterests = computed(() => {
     const status = this.selectedStatus();
     if (status === 'all') return this.interests();
     return this.interests().filter((i) => i.status === status);
+  });
+
+  readonly pendingInterests = computed(() =>
+    this.filteredInterests().filter((i) => i.status === 'pending')
+  );
+
+  readonly selectedCount = computed(() => this.selectedIds().size);
+
+  readonly allSelected = computed(() => {
+    const pending = this.pendingInterests();
+    const selected = this.selectedIds();
+    return pending.length > 0 && pending.every((i) => selected.has(i.id));
   });
 
   get pendingCount(): number {
@@ -38,6 +53,69 @@ export class Interests implements OnInit {
 
   get rejectedCount(): number {
     return this.interests().filter((i) => i.status === 'rejected').length;
+  }
+
+  toggleSelect(id: string): void {
+    this.selectedIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  toggleSelectAll(): void {
+    const pending = this.pendingInterests();
+    if (this.allSelected()) {
+      this.selectedIds.set(new Set());
+    } else {
+      this.selectedIds.set(new Set(pending.map((i) => i.id)));
+    }
+  }
+
+  async bulkApprove(): Promise<void> {
+    const ids = Array.from(this.selectedIds());
+    if (!ids.length) return;
+    this.bulkActionLoading.set(true);
+    try {
+      await this.projectService.bulkApproveInterest(ids);
+      this.interests.update((list) =>
+        list.map((i) =>
+          ids.includes(i.id)
+            ? { ...i, status: 'approved' as const, reviewed_at: new Date().toISOString() }
+            : i
+        )
+      );
+      this.selectedIds.set(new Set());
+      this.snackbar.success(`Approved ${ids.length} request(s)`);
+    } catch {
+      this.snackbar.error('Failed to approve');
+    } finally {
+      this.bulkActionLoading.set(false);
+    }
+  }
+
+  async bulkReject(): Promise<void> {
+    const ids = Array.from(this.selectedIds());
+    if (!ids.length) return;
+    const note = prompt('Reason for rejection (optional, applies to all):');
+    this.bulkActionLoading.set(true);
+    try {
+      await this.projectService.bulkRejectInterest(ids, note || undefined);
+      this.interests.update((list) =>
+        list.map((i) =>
+          ids.includes(i.id)
+            ? { ...i, status: 'rejected' as const, review_note: note ?? null, reviewed_at: new Date().toISOString() }
+            : i
+        )
+      );
+      this.selectedIds.set(new Set());
+      this.snackbar.success(`Rejected ${ids.length} request(s)`);
+    } catch {
+      this.snackbar.error('Failed to reject');
+    } finally {
+      this.bulkActionLoading.set(false);
+    }
   }
 
   async ngOnInit(): Promise<void> {

@@ -1,0 +1,277 @@
+.time-logs-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.page-subtitle {
+  color: #64748b;
+  margin: 0.25rem 0 0;
+}
+
+.loading-inline {
+  padding: 2rem;
+  color: #64748b;
+}
+
+// Employee List
+.employee-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.employee-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &__avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    strong {
+      font-size: 1rem;
+      color: #1e293b;
+    }
+
+    span {
+      font-size: 0.8125rem;
+      color: #64748b;
+    }
+  }
+
+  &__dept {
+    font-size: 0.75rem !important;
+    color: var(--primary) !important;
+  }
+
+  &__arrow {
+    color: #94a3b8;
+    font-size: 1.25rem;
+  }
+}
+
+.search-bar .form-control {
+  max-width: 400px;
+}
+
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  color: #94a3b8;
+
+  i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+// Detail View
+.detail-view {
+  margin-top: 1rem;
+}
+
+.employee-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  border: 1px solid #99f6e4;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.employee-avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.employee-info {
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.25rem;
+    color: #0d9488;
+  }
+}
+
+.employee-meta {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.period-tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.period-tab {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  border-radius: 0.375rem;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+
+  @media (max-width: 991.98px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+
+  &--chart .chart-container {
+    height: 220px;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.chart-container {
+  position: relative;
+  height: 200px;
+}
+
+.empty-text {
+  color: #94a3b8;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+
+  &__title {
+    font-weight: 500;
+    color: #1e293b;
+  }
+}
+
+.time-logs-table {
+  overflow-x: auto;
+
+  .table {
+    margin: 0;
+    font-size: 0.875rem;
+
+    th {
+      font-weight: 600;
+      color: #64748b;
+    }
+  }
+}

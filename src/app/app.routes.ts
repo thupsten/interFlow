@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './auth.guard';
-import { adminGuard, adminOrManagerGuard, userOnlyGuard } from './guards/role.guard';
+import { adminGuard, adminOrManagerGuard, userOnlyGuard, adminOrItManagerGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -40,6 +40,17 @@ export const routes: Routes = [
         path: 'dashboard/employee',
         loadComponent: () => import('./dashboard/employee/employee-dashboard').then((m) => m.EmployeeDashboard),
         canActivate: [userOnlyGuard],
+      },
+      {
+        path: 'dashboard/it-manager',
+        loadComponent: () => import('./dashboard/it-manager/it-manager-dashboard').then((m) => m.ItManagerDashboard),
+        canActivate: [adminOrItManagerGuard],
+      },
+
+      // Search
+      {
+        path: 'search',
+        loadComponent: () => import('./pages/search/search').then((m) => m.Search),
       },
 
       // Projects - All can view, but different capabilities
@@ -108,6 +119,25 @@ export const routes: Routes = [
         canActivate: [adminOrManagerGuard],
       },
 
+      // Time Logs - Admin & Manager (employee list, click for detail with projects + logs + graphs)
+      {
+        path: 'time-logs',
+        loadComponent: () => import('./pages/time-logs/time-logs').then((m) => m.TimeLogs),
+        canActivate: [adminOrManagerGuard],
+      },
+      {
+        path: 'time-logs/:userId',
+        loadComponent: () => import('./pages/time-logs/time-logs').then((m) => m.TimeLogs),
+        canActivate: [adminOrManagerGuard],
+      },
+
+      // My Time Logs - Employee only (detailed view of own time logs)
+      {
+        path: 'my-time-logs',
+        loadComponent: () => import('./pages/my-time-logs/my-time-logs').then((m) => m.MyTimeLogs),
+        canActivate: [userOnlyGuard],
+      },
+
       // User Management - Admin only
       {
         path: 'users',
@@ -120,6 +150,12 @@ export const routes: Routes = [
         path: 'activity',
         loadComponent: () => import('./pages/activity/activity').then((m) => m.Activity),
         canActivate: [adminGuard],
+      },
+
+      // IT Support - All can create; IT manager manages; Admin view-only
+      {
+        path: 'it-support',
+        loadComponent: () => import('./pages/it-support/it-support').then((m) => m.ItSupport),
       },
 
       // Calendar - All can view their relevant items

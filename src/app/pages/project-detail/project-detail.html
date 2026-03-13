@@ -156,6 +156,14 @@
           }
         </button>
       }
+      @if (api.isAdmin() || api.isManager()) {
+        <button class="tab" [class.active]="activeTab() === 'time'" (click)="setTab('time')">
+          <i class="bi bi-clock-history me-1"></i> Time Logs
+          @if (timeLogs().length > 0) {
+            <span class="tab__count">{{ timeLogs().length }}</span>
+          }
+        </button>
+      }
     </div>
 
     <!-- Tab Content -->
@@ -565,6 +573,50 @@
                   </div>
                 </div>
               }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Time Logs Tab (Admin & Manager) -->
+      @if (activeTab() === 'time' && (api.isAdmin() || api.isManager())) {
+        <div class="card">
+          <h3 class="card__title">
+            <i class="bi bi-clock-history me-2"></i> Time Logs
+            <span class="badge bg-primary ms-2">{{ timeLogs().length }} entries</span>
+          </h3>
+          <p class="card__subtitle mb-3">Time logged by employees on project tasks</p>
+          
+          @if (timeLogs().length === 0) {
+            <div class="empty-box">
+              <i class="bi bi-clock-history"></i>
+              <h4>No time logged yet</h4>
+              <p>When employees log time on tasks, their entries will appear here</p>
+            </div>
+          } @else {
+            <div class="time-logs-table">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Task</th>
+                    <th>Hours</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (log of timeLogs(); track log.id) {
+                    <tr>
+                      <td>{{ getTimeLogUserName(log) }}</td>
+                      <td>{{ getTimeLogTaskName(log) }}</td>
+                      <td>{{ log.hours }}h</td>
+                      <td>{{ formatDate(log.log_date) }}</td>
+                      <td class="text-muted">{{ log.description || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
             </div>
           }
         </div>

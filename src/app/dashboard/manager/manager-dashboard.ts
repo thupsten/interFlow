@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api } from '../../services/api';
 import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
-import type { Project, Task, InterestRequest, Profile } from '../../interfaces/database.types';
+import { TimeTrackingService } from '../../services/time-tracking.service';
+import type { Project, Task, InterestRequest, Profile, TimeLog } from '../../interfaces/database.types';
 
 @Component({
   selector: 'app-manager-dashboard',
@@ -16,8 +17,17 @@ export class ManagerDashboard implements OnInit {
   readonly api = inject(Api);
   readonly projectService = inject(ProjectService);
   readonly taskService = inject(TaskService);
+  readonly timeTracking = inject(TimeTrackingService);
 
   readonly loading = signal(true);
+
+  // Team time logs
+  readonly timeLogPeriod = signal<'week' | 'month' | 'year'>('week');
+  readonly teamTimeLogs = signal<TimeLog[]>([]);
+  readonly loadingTimeLogs = signal(false);
+  readonly totalTeamHours = computed(() =>
+    this.teamTimeLogs().reduce((sum, log) => sum + Number(log.hours), 0)
+  );
 
   // Stats
   readonly stats = signal({
@@ -48,13 +58,21 @@ export class ManagerDashboard implements OnInit {
     const userId = this.api.user()?.id;
     if (!userId) return;
 
-    // Get projects where user is manager
-    const { data: managedProjectIds } = await this.api.supabase
-      .from('project_managers')
-      .select('project_id')
-      .eq('user_id', userId);
+    let projectIds: string[] = [];
 
-    const projectIds = managedProjectIds?.map((p) => p.project_id) || [];
+    if (this.api.isAdmin()) {
+      const { data: allProjects } = await this.api.supabase
+        .from('projects')
+        .select('id')
+        .is('deleted_at', null);
+      projectIds = allProjects?.map((p) => p.id) || [];
+    } else {
+      const { data: managedProjectIds } = await this.api.supabase
+        .from('project_managers')
+        .select('project_id')
+        .eq('user_id', userId);
+      projectIds = managedProjectIds?.map((p) => p.project_id) || [];
+    }
 
     if (projectIds.length > 0) {
       // Load managed projects
@@ -121,7 +139,58 @@ export class ManagerDashboard implements OnInit {
         pendingReviews: reviewTasks?.length || 0,
         pendingInterests: interests?.length || 0,
       });
+
+      // Load team time logs
+      await this.loadTeamTimeLogs(projectIds);
     }
+  }
+
+  async loadTeamTimeLogs(projectIds: string[]): Promise<void> {
+    if (!projectIds.length) {
+      this.teamTimeLogs.set([]);
+      return;
+    }
+    this.loadingTimeLogs.set(true);
+    try {
+      const logs = await this.timeTracking.getTeamTimeLogs(projectIds, this.timeLogPeriod());
+      this.teamTimeLogs.set(logs);
+    } catch {
+      this.teamTimeLogs.set([]);
+    } finally {
+      this.loadingTimeLogs.set(false);
+    }
+  }
+
+  async setTimeLogPeriod(period: 'week' | 'month' | 'year'): Promise<void> {
+    this.timeLogPeriod.set(period);
+    let projectIds: string[] = [];
+    const userId = this.api.user()?.id;
+    if (this.api.isAdmin()) {
+      const { data } = await this.api.supabase.from('projects').select('id').is('deleted_at', null);
+      projectIds = data?.map((p) => p.id) || [];
+    } else if (userId) {
+      const { data } = await this.api.supabase
+        .from('project_managers')
+        .select('project_id')
+        .eq('user_id', userId);
+      projectIds = data?.map((p) => p.project_id) || [];
+    }
+    await this.loadTeamTimeLogs(projectIds);
+  }
+
+  getTimeLogUserName(log: TimeLog): string {
+    const user = (log as { user?: { full_name?: string } }).user;
+    return user?.full_name ?? 'Unknown';
+  }
+
+  getTimeLogProjectName(log: TimeLog): string {
+    const task = log.task as { project?: { title?: string } } | undefined;
+    return task?.project?.title ?? '—';
+  }
+
+  getTimeLogTaskName(log: TimeLog): string {
+    const task = log.task as { title?: string } | undefined;
+    return task?.title ?? '—';
   }
 
   private mapTasks(data: any[]): Task[] {

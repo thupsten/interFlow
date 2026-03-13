@@ -180,6 +180,7 @@ export class AcceptInvite implements OnInit {
     const labels: Record<string, string> = {
       admin: 'Administrator',
       manager: 'Project Manager',
+      it_manager: 'IT Manager',
       user: 'Team Member',
     };
     return labels[role] || 'Team Member';

@@ -120,6 +120,42 @@
       }
     </div>
   }
+
+  <!-- My Time Logs -->
+  <div class="time-logs-section">
+    <div class="time-logs-header">
+      <h3><i class="bi bi-clock-history me-2"></i>My Time Logs</h3>
+      <span class="time-logs-badge">{{ myTimeLogs().length }} entries</span>
+    </div>
+    @if (myTimeLogs().length === 0) {
+      <div class="time-logs-empty">
+        <i class="bi bi-clock"></i>
+        <p>No time logged yet</p>
+        <span>Log time on tasks in progress to see your entries here</span>
+      </div>
+    } @else {
+      <div class="time-logs-list">
+        @for (log of myTimeLogs().slice(0, 10); track log.id) {
+          <div class="time-log-card">
+            <div class="time-log-card__icon">
+              <i class="bi bi-clock-fill"></i>
+            </div>
+            <div class="time-log-card__content">
+              <strong>{{ getTimeLogTaskTitle(log) }}</strong>
+              <span class="time-log-card__project">{{ getTimeLogProjectTitle(log) }}</span>
+              @if (log.description) {
+                <span class="time-log-card__desc">{{ log.description }}</span>
+              }
+            </div>
+            <div class="time-log-card__meta">
+              <span class="time-log-card__hours">{{ log.hours }}h</span>
+              <span class="time-log-card__date">{{ formatDate(log.log_date) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
 </div>
 
 <!-- Time Log Modal -->
@@ -160,9 +196,12 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeTimeLogModal()">Cancel</button>
-        <button type="button" class="btn btn-primary" (click)="submitTimeLog()" [disabled]="timeLogForm.hours <= 0">
-          <i class="bi bi-check2 me-1"></i>Log Time
+        <button type="button" class="btn btn-secondary" (click)="closeTimeLogModal()" [disabled]="submittingTimeLog">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="submitTimeLog()" [disabled]="timeLogForm.hours <= 0 || submittingTimeLog">
+          @if (submittingTimeLog) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          <i class="bi bi-check2 me-1" [class.d-none]="submittingTimeLog"></i>Log Time
         </button>
       </div>
     </div>

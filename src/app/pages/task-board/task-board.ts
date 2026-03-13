@@ -5,7 +5,7 @@ import { Api } from '../../services/api';
 import { TaskService } from '../../services/task.service';
 import { TimeTrackingService } from '../../services/time-tracking.service';
 import { SnackbarService } from '../../services/snackbar.service';
-import type { Task } from '../../interfaces/database.types';
+import type { Task, TimeLog } from '../../interfaces/database.types';
 
 type TaskStatus = 'not_started' | 'in_progress' | 'completed';
 
@@ -32,6 +32,7 @@ export class TaskBoard implements OnInit {
   readonly loading = signal(true);
   readonly tasks = signal<Task[]>([]);
   readonly draggedTask = signal<Task | null>(null);
+  readonly myTimeLogs = signal<TimeLog[]>([]);
 
   readonly columns: Column[] = [
     { id: 'not_started', title: 'To Do', icon: 'bi-circle', color: '#94a3b8' },
@@ -42,6 +43,7 @@ export class TaskBoard implements OnInit {
   showTimeLogModal = false;
   selectedTaskForTimeLog: Task | null = null;
   timeLogForm = { hours: 1, description: '' };
+  submittingTimeLog = false;
 
   readonly tasksByStatus = computed(() => {
     const allTasks = this.tasks();
@@ -73,8 +75,12 @@ export class TaskBoard implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const tasks = await this.taskService.getMyTasks();
+      const [tasks, timeLogs] = await Promise.all([
+        this.taskService.getMyTasks(),
+        this.timeTrackingService.getMyTimeLogs(),
+      ]);
       this.tasks.set(tasks);
+      this.myTimeLogs.set(timeLogs);
     } finally {
       this.loading.set(false);
     }
@@ -144,18 +150,22 @@ export class TaskBoard implements OnInit {
   }
 
   async submitTimeLog(): Promise<void> {
-    if (!this.selectedTaskForTimeLog) return;
+    if (!this.selectedTaskForTimeLog || this.timeLogForm.hours <= 0) return;
 
+    const { hours, description } = this.timeLogForm;
+    const task = this.selectedTaskForTimeLog;
+    this.submittingTimeLog = true;
     try {
-      await this.timeTrackingService.logTime(
-        this.selectedTaskForTimeLog.id,
-        this.timeLogForm.hours,
-        this.timeLogForm.description
-      );
+      const log = await this.timeTrackingService.logTime(task.id, hours, description);
       this.closeTimeLogModal();
-      this.snackbar.success('Time logged successfully!');
-    } catch {
-      this.snackbar.error('Failed to log time');
+      this.timeLogForm = { hours: 1, description: '' };
+      this.myTimeLogs.update((logs) => [{ ...log, task } as TimeLog, ...logs]);
+      this.snackbar.success(`Logged ${hours} hour(s) on "${task.title}"`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? 'Unknown error';
+      this.snackbar.error(`Failed to log time: ${msg}`);
+    } finally {
+      this.submittingTimeLog = false;
     }
   }
 
@@ -170,6 +180,16 @@ export class TaskBoard implements OnInit {
 
   formatDate(date: string): string {
     return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  getTimeLogTaskTitle(log: TimeLog): string {
+    const t = (log as { task?: { title?: string } }).task;
+    return t?.title ?? 'Unknown task';
+  }
+
+  getTimeLogProjectTitle(log: TimeLog): string {
+    const t = (log as { task?: { project?: { title?: string } } }).task;
+    return t?.project?.title ?? '—';
   }
 
   isOverdue(task: Task): boolean {

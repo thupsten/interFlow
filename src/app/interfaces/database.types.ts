@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type UserRole = 'admin' | 'manager' | 'user';
+export type UserRole = 'admin' | 'manager' | 'user' | 'it_manager';
 export type UserStatus = 'invited' | 'active' | 'deactivated';
 export type Priority = 'high' | 'medium' | 'low';
 export type ProjectStatus = 'not_started' | 'in_progress' | 'completed' | 'delayed' | 'on_hold';
@@ -221,6 +221,24 @@ export interface Notification {
   link: string | null;
   is_read: boolean;
   created_at: string;
+}
+
+export type ItTicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
+
+export interface ItSupportTicket {
+  id: string;
+  raised_by: string;
+  title: string;
+  description: string | null;
+  status: ItTicketStatus;
+  priority: Priority;
+  resolution_note: string | null;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  created_at: string;
+  updated_at: string;
+  raiser?: Profile;
+  resolver?: Profile;
 }
 
 // Dashboard Stats

@@ -8,7 +8,8 @@ import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
 import { CommentService } from '../../services/comment.service';
 import { NotificationService } from '../../services/notification.service';
-import type { Project, Task, InterestRequest, Profile, ProjectComment } from '../../interfaces/database.types';
+import { TimeTrackingService } from '../../services/time-tracking.service';
+import type { Project, Task, InterestRequest, Profile, ProjectComment, TimeLog } from '../../interfaces/database.types';
 
 @Component({
   selector: 'app-project-detail',
@@ -25,6 +26,7 @@ export class ProjectDetail implements OnInit {
   readonly taskService = inject(TaskService);
   readonly commentService = inject(CommentService);
   readonly notificationService = inject(NotificationService);
+  readonly timeTracking = inject(TimeTrackingService);
   readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
@@ -32,8 +34,9 @@ export class ProjectDetail implements OnInit {
   readonly tasks = signal<Task[]>([]);
   readonly interests = signal<InterestRequest[]>([]);
   readonly comments = signal<ProjectComment[]>([]);
+  readonly timeLogs = signal<TimeLog[]>([]);
   
-  readonly activeTab = signal<'overview' | 'tasks' | 'team' | 'comments' | 'interests'>('overview');
+  readonly activeTab = signal<'overview' | 'tasks' | 'team' | 'comments' | 'interests' | 'time'>('overview');
   readonly showAdminMenu = signal(false);
   
   newComment = '';
@@ -109,13 +112,28 @@ export class ProjectDetail implements OnInit {
         const allInterests = await this.projectService.getProjectInterests(id);
         this.interests.set(allInterests);
       }
+      // Load time logs if admin/manager
+      if (this.api.isAdmin() || this.api.isManager()) {
+        const logs = await this.timeTracking.getProjectTimeLogs(id).catch(() => []);
+        this.timeLogs.set(logs);
+      }
     } finally {
       this.loading.set(false);
     }
   }
 
-  setTab(tab: 'overview' | 'tasks' | 'team' | 'comments' | 'interests'): void {
+  setTab(tab: 'overview' | 'tasks' | 'team' | 'comments' | 'interests' | 'time'): void {
     this.activeTab.set(tab);
+  }
+
+  getTimeLogUserName(log: TimeLog): string {
+    const user = (log as any).user;
+    return user?.full_name || user?.email || 'Unknown';
+  }
+
+  getTimeLogTaskName(log: TimeLog): string {
+    const task = (log as any).task;
+    return task?.title ?? '—';
   }
 
   async deleteComment(commentId: string): Promise<void> {

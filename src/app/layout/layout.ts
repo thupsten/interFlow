@@ -8,7 +8,7 @@ interface NavItem {
   label: string;
   icon: string;
   route: string;
-  roles?: ('admin' | 'manager' | 'user')[];
+  roles?: ('admin' | 'manager' | 'user' | 'it_manager')[];
 }
 
 @Component({
@@ -30,10 +30,12 @@ export class Layout {
   private readonly allNavItems: NavItem[] = [
     // Common
     { label: 'Dashboard', icon: 'bi-speedometer2', route: '/dashboard' },
+    { label: 'Search', icon: 'bi-search', route: '/search' },
     
     // User (Employee) only
     { label: 'My Work', icon: 'bi-briefcase', route: '/my-work', roles: ['user'] },
     { label: 'Task Board', icon: 'bi-kanban', route: '/task-board', roles: ['user'] },
+    { label: 'My Time Logs', icon: 'bi-clock-history', route: '/my-time-logs', roles: ['user'] },
     { label: 'Explore Projects', icon: 'bi-compass', route: '/projects', roles: ['user'] },
     { label: 'My Interests', icon: 'bi-heart', route: '/my-interests', roles: ['user'] },
     
@@ -42,10 +44,14 @@ export class Layout {
     { label: 'Tasks', icon: 'bi-list-task', route: '/tasks', roles: ['admin', 'manager'] },
     { label: 'Interest Requests', icon: 'bi-hand-index', route: '/interests', roles: ['admin', 'manager'] },
     { label: 'Team', icon: 'bi-people', route: '/team', roles: ['admin', 'manager'] },
+    { label: 'Time Logs', icon: 'bi-clock-history', route: '/time-logs', roles: ['admin', 'manager'] },
     
     // Admin only
     { label: 'User Management', icon: 'bi-person-gear', route: '/users', roles: ['admin'] },
     { label: 'Activity Log', icon: 'bi-activity', route: '/activity', roles: ['admin'] },
+
+    // IT Support - All can create & view; IT manager manages; Admin view-only
+    { label: 'IT Support', icon: 'bi-ticket-perforated', route: '/it-support' },
     
     // Common - Calendar & Settings
     { label: 'Calendar', icon: 'bi-calendar3', route: '/calendar' },
