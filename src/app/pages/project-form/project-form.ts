@@ -232,8 +232,9 @@ export class ProjectForm implements OnInit {
       }
 
       this.router.navigate(['/projects', projectId]);
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Failed to save project');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
+      this.error.set(msg);
     } finally {
       this.saving.set(false);
     }

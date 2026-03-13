@@ -12,8 +12,19 @@ export class UserService {
     const { data, error } = await this.api.supabase
       .from('profiles')
       .select('*')
-      .neq('status', 'deactivated')
+      .neq('status', 'invited')
       .order('full_name');
+
+    if (error) throw error;
+    return data as Profile[];
+  }
+
+  async getPendingInvites(): Promise<Profile[]> {
+    const { data, error } = await this.api.supabase
+      .from('profiles')
+      .select('*')
+      .eq('status', 'invited')
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data as Profile[];
@@ -50,14 +61,20 @@ export class UserService {
     if (error) throw error;
 
     const stats = {
-      total: data?.length || 0,
+      total: 0,
       admins: 0,
       managers: 0,
       users: 0,
       active: 0,
+      pending: 0,
     };
 
     data?.forEach((p) => {
+      if (p.status === 'invited') {
+        stats.pending++;
+        return;
+      }
+      stats.total++;
       if (p.role === 'admin') stats.admins++;
       if (p.role === 'manager') stats.managers++;
       if (p.role === 'user') stats.users++;

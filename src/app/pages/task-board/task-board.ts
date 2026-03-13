@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Api } from '../../services/api';
 import { TaskService } from '../../services/task.service';
 import { TimeTrackingService } from '../../services/time-tracking.service';
+import { SnackbarService } from '../../services/snackbar.service';
 import type { Task } from '../../interfaces/database.types';
 
 type TaskStatus = 'not_started' | 'in_progress' | 'completed';
@@ -26,6 +27,7 @@ export class TaskBoard implements OnInit {
   readonly api = inject(Api);
   readonly taskService = inject(TaskService);
   readonly timeTrackingService = inject(TimeTrackingService);
+  readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
   readonly tasks = signal<Task[]>([]);
@@ -109,7 +111,7 @@ export class TaskBoard implements OnInit {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
       console.error('Task status update error:', err);
-      alert(`Failed to update task status: ${msg}\n\nIf this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
+      this.snackbar.error(`Failed to update task status: ${msg}. If this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
     } finally {
       this.draggedTask.set(null);
     }
@@ -126,7 +128,7 @@ export class TaskBoard implements OnInit {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
       console.error('Task status update error:', err);
-      alert(`Failed to update task status: ${msg}\n\nIf this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
+      this.snackbar.error(`Failed to update task status: ${msg}. If this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
     }
   }
 
@@ -151,9 +153,9 @@ export class TaskBoard implements OnInit {
         this.timeLogForm.description
       );
       this.closeTimeLogModal();
-      alert('Time logged successfully!');
+      this.snackbar.success('Time logged successfully!');
     } catch {
-      alert('Failed to log time');
+      this.snackbar.error('Failed to log time');
     }
   }
 

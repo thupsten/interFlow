@@ -8,6 +8,7 @@ import { NotificationService } from '../../services/notification.service';
 import { FavoriteService } from '../../services/favorite.service';
 import { TimeTrackingService } from '../../services/time-tracking.service';
 import { SkillService } from '../../services/skill.service';
+import { SnackbarService } from '../../services/snackbar.service';
 import type { Project, Task, InterestRequest, Notification, UserSkill } from '../../interfaces/database.types';
 
 Chart.register(...registerables);
@@ -30,6 +31,7 @@ export class EmployeeDashboard implements OnInit, AfterViewInit {
   readonly favoriteService = inject(FavoriteService);
   readonly timeTrackingService = inject(TimeTrackingService);
   readonly skillService = inject(SkillService);
+  readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
 
@@ -62,12 +64,12 @@ export class EmployeeDashboard implements OnInit, AfterViewInit {
       await this.loadDashboardData();
     } finally {
       this.loading.set(false);
+      // Charts are inside @if (!loading()) - wait for DOM to render
+      setTimeout(() => this.renderCharts(), 150);
     }
   }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => this.renderCharts(), 100);
-  }
+  ngAfterViewInit(): void {}
 
   private async loadDashboardData(): Promise<void> {
     const userId = this.api.user()?.id;
@@ -227,7 +229,7 @@ export class EmployeeDashboard implements OnInit, AfterViewInit {
         completedTasks: s.completedTasks + 1,
       }));
     } catch {
-      alert('Failed to complete task');
+      this.snackbar.error('Failed to complete task');
     }
   }
 
@@ -237,7 +239,7 @@ export class EmployeeDashboard implements OnInit, AfterViewInit {
       this.recommendedProjects.update((list) => list.filter((p) => p.id !== projectId));
       this.stats.update((s) => ({ ...s, pendingInterests: s.pendingInterests + 1 }));
     } catch {
-      alert('Failed to submit interest');
+      this.snackbar.error('Failed to submit interest');
     }
   }
 

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgClass, TitleCasePipe } from '@angular/common';
 import { Api } from '../../services/api';
+import { SnackbarService } from '../../services/snackbar.service';
 import { ProjectService } from '../../services/project.service';
 import type { InterestRequest } from '../../interfaces/database.types';
 
@@ -15,6 +16,7 @@ import type { InterestRequest } from '../../interfaces/database.types';
 export class Interests implements OnInit {
   readonly api = inject(Api);
   readonly projectService = inject(ProjectService);
+  readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
   readonly interests = signal<InterestRequest[]>([]);
@@ -58,7 +60,7 @@ export class Interests implements OnInit {
         )
       );
     } catch {
-      alert('Failed to approve');
+      this.snackbar.error('Failed to approve');
     }
   }
 
@@ -74,7 +76,7 @@ export class Interests implements OnInit {
         )
       );
     } catch {
-      alert('Failed to reject');
+      this.snackbar.error('Failed to reject');
     }
   }
 

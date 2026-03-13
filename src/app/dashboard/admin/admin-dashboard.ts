@@ -33,6 +33,7 @@ export class AdminDashboard implements OnInit, AfterViewInit {
   readonly stats = signal({
     totalUsers: 0,
     activeUsers: 0,
+    pendingInvites: 0,
     totalProjects: 0,
     activeProjects: 0,
     completedProjects: 0,
@@ -55,12 +56,12 @@ export class AdminDashboard implements OnInit, AfterViewInit {
       await this.loadDashboardData();
     } finally {
       this.loading.set(false);
+      // Charts are inside @if (!loading()) - wait for DOM to render
+      setTimeout(() => this.renderCharts(), 150);
     }
   }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => this.renderCharts(), 100);
-  }
+  ngAfterViewInit(): void {}
 
   private async loadDashboardData(): Promise<void> {
     const [projectStats, taskStats, userStats, projects, interests, overdue, users, activity] =
@@ -78,6 +79,7 @@ export class AdminDashboard implements OnInit, AfterViewInit {
     this.stats.set({
       totalUsers: userStats.total,
       activeUsers: userStats.active,
+      pendingInvites: userStats.pending ?? 0,
       totalProjects: projectStats.total,
       activeProjects: projectStats.in_progress,
       completedProjects: projectStats.completed,

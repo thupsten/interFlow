@@ -38,8 +38,14 @@
   <div class="stats-row">
     <div class="stat-box">
       <span class="stat-box__value">{{ users().length }}</span>
-      <span class="stat-box__label">Total Users</span>
+      <span class="stat-box__label">Verified Users</span>
     </div>
+    @if (pendingInvites().length > 0) {
+      <div class="stat-box stat-box--warning">
+        <span class="stat-box__value">{{ pendingInvites().length }}</span>
+        <span class="stat-box__label">Pending Invites</span>
+      </div>
+    }
     <div class="stat-box stat-box--admin">
       <span class="stat-box__value">{{ users().filter(u => u.role === 'admin').length }}</span>
       <span class="stat-box__label">Admins</span>
@@ -60,6 +66,26 @@
       <span>Loading users...</span>
     </div>
   } @else {
+    @if (pendingInvites().length > 0) {
+      <div class="pending-invites-section mb-4">
+        <h2 class="h6 mb-2">
+          <i class="bi bi-clock-history me-2"></i> Pending invites (awaiting email &amp; password verification)
+        </h2>
+        <div class="pending-invites-list">
+          @for (invite of pendingInvites(); track invite.id) {
+            <div class="pending-invite-item">
+              <span class="avatar avatar-sm">{{ getInitials(invite.full_name) }}</span>
+              <div>
+                <strong>{{ invite.full_name }}</strong>
+                <span class="text-muted ms-2">{{ invite.email }}</span>
+                <span class="badge bg-warning ms-2">Pending</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <div class="user-table">
       <table class="table">
         <thead>
@@ -169,7 +195,7 @@
           <div class="alert alert-success">
             <i class="bi bi-envelope-check me-2"></i>
             <strong>Invitation sent!</strong><br>
-            An email has been sent to <strong>{{ inviteForm.email }}</strong> with a link to complete registration.
+            An email has been sent to <strong>{{ inviteForm.email }}</strong>. The user will enter their name and other details when they sign up.
           </div>
         }
 
@@ -180,6 +206,10 @@
           </div>
         }
 
+        <p class="text-muted small mb-3">
+          Enter email and role. The invited user will set their name and other details when they complete registration.
+        </p>
+
         <div class="mb-3">
           <label class="form-label">Email Address <span class="text-danger">*</span></label>
           <input
@@ -187,17 +217,6 @@
             class="form-control"
             [(ngModel)]="inviteForm.email"
             placeholder="user@company.com"
-            [disabled]="inviting()"
-          />
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Full Name <span class="text-danger">*</span></label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="inviteForm.full_name"
-            placeholder="John Doe"
             [disabled]="inviting()"
           />
         </div>
@@ -225,17 +244,6 @@
               }
             }
           </div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Department</label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="inviteForm.department"
-            placeholder="Engineering, Marketing, etc."
-            [disabled]="inviting()"
-          />
         </div>
       </div>
       <div class="modal-footer">

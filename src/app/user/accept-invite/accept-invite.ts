@@ -57,7 +57,8 @@ export class AcceptInvite implements OnInit {
             this.userEmail.set(data.user.email || '');
             this.userName.set(data.user.user_metadata?.['full_name'] || '');
             this.userRole.set(data.user.user_metadata?.['role'] || 'user');
-            this.form.full_name = data.user.user_metadata?.['full_name'] || '';
+            const metaName = data.user.user_metadata?.['full_name'];
+            this.form.full_name = (metaName && metaName !== 'Pending') ? metaName : '';
             this.form.department = data.user.user_metadata?.['department'] || '';
           }
         }
@@ -80,7 +81,8 @@ export class AcceptInvite implements OnInit {
           this.userEmail.set(session.user.email || '');
           this.userName.set(session.user.user_metadata?.['full_name'] || '');
           this.userRole.set(session.user.user_metadata?.['role'] || 'user');
-          this.form.full_name = session.user.user_metadata?.['full_name'] || '';
+          const metaName = session.user.user_metadata?.['full_name'];
+          this.form.full_name = (metaName && metaName !== 'Pending') ? metaName : '';
         } else {
           this.error.set('No invitation found. Please use the link from your invitation email.');
         }
@@ -144,6 +146,9 @@ export class AcceptInvite implements OnInit {
         if (profileError) {
           console.error('Profile update error:', profileError);
         }
+
+        // Refresh Api profile cache so authGuard sees status 'active'
+        await this.api.loadProfile(user.id);
       }
 
       this.success.set(true);
@@ -158,6 +163,17 @@ export class AcceptInvite implements OnInit {
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  getInitials(): string {
+    const name = this.form.full_name?.trim() || this.userEmail();
+    if (!name) return '?';
+    return name
+      .split(/\s+/)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   }
 
   getRoleLabel(role: string): string {

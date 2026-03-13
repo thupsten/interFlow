@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Api } from '../../services/api';
+import { SnackbarService } from '../../services/snackbar.service';
 import { ProjectService } from '../../services/project.service';
 import { FavoriteService } from '../../services/favorite.service';
 import type { Project, Tag } from '../../interfaces/database.types';
@@ -17,6 +18,7 @@ export class Projects implements OnInit {
   readonly api = inject(Api);
   readonly projectService = inject(ProjectService);
   readonly favoriteService = inject(FavoriteService);
+  readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
   readonly projects = signal<Project[]>([]);
@@ -121,7 +123,7 @@ export class Projects implements OnInit {
       this.myInterestProjectIds.update((ids) => new Set([...ids, projectId]));
       this.closeInterestModal();
     } catch (err) {
-      alert('Failed to submit interest. Please try again.');
+      this.snackbar.error('Failed to submit interest. Please try again.');
     } finally {
       this.submittingInterest.set(false);
     }

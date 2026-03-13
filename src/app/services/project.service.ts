@@ -129,7 +129,10 @@ export class ProjectService {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      const msg = (error as { message?: string }).message ?? JSON.stringify(error);
+      throw new Error(msg);
+    }
     return data as Project;
   }
 
@@ -146,29 +149,17 @@ export class ProjectService {
   }
 
   async archiveProject(id: string): Promise<void> {
-    const { error } = await this.api.supabase
-      .from('projects')
-      .update({ archived_at: new Date().toISOString() })
-      .eq('id', id);
-
+    const { error } = await this.api.supabase.rpc('archive_project', { p_project_id: id });
     if (error) throw error;
   }
 
   async unarchiveProject(id: string): Promise<void> {
-    const { error } = await this.api.supabase
-      .from('projects')
-      .update({ archived_at: null })
-      .eq('id', id);
-
+    const { error } = await this.api.supabase.rpc('unarchive_project', { p_project_id: id });
     if (error) throw error;
   }
 
   async deleteProject(id: string): Promise<void> {
-    const { error } = await this.api.supabase
-      .from('projects')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
-
+    const { error } = await this.api.supabase.rpc('soft_delete_project', { p_project_id: id });
     if (error) throw error;
   }
 

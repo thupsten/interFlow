@@ -6,6 +6,7 @@ import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
 import { CommentService } from '../../services/comment.service';
 import { TimeTrackingService } from '../../services/time-tracking.service';
+import { SnackbarService } from '../../services/snackbar.service';
 import type { Task, Project, TaskComment } from '../../interfaces/database.types';
 
 @Component({
@@ -21,6 +22,7 @@ export class MyWork implements OnInit {
   readonly projectService = inject(ProjectService);
   readonly commentService = inject(CommentService);
   readonly timeTrackingService = inject(TimeTrackingService);
+  readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
   readonly myTasks = signal<Task[]>([]);
@@ -102,7 +104,7 @@ export class MyWork implements OnInit {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
       console.error('Mark complete error:', err);
-      alert(`Failed to mark task as complete: ${msg}\n\nIf this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
+      this.snackbar.error(`Failed to mark task as complete: ${msg}. If this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
     }
   }
 
@@ -113,7 +115,7 @@ export class MyWork implements OnInit {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
       console.error('Task status update error:', err);
-      alert(`Failed to update task status: ${msg}\n\nIf this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
+      this.snackbar.error(`Failed to update task status: ${msg}. If this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
     }
   }
 
@@ -136,7 +138,7 @@ export class MyWork implements OnInit {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
       console.error('Start task error:', err);
-      alert(`Failed to start task: ${msg}\n\nRun the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md to fix permission.`);
+      this.snackbar.error(`Failed to start task: ${msg}. Run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md to fix permission.`);
     }
   }
 
@@ -195,7 +197,7 @@ export class MyWork implements OnInit {
       this.taskComments.update((list) => [comment, ...list]);
       this.newComment = '';
     } catch {
-      alert('Failed to add comment');
+      this.snackbar.error('Failed to add comment');
     } finally {
       this.submittingComment = false;
     }
@@ -210,9 +212,9 @@ export class MyWork implements OnInit {
       await this.timeTrackingService.logTime(taskId, this.timeLogForm.hours, this.timeLogForm.description);
       this.showTimeLogForm = false;
       this.timeLogForm = { hours: 1, description: '' };
-      alert('Time logged successfully!');
+      this.snackbar.success('Time logged successfully!');
     } catch {
-      alert('Failed to log time');
+      this.snackbar.error('Failed to log time');
     } finally {
       this.submittingTimeLog = false;
     }

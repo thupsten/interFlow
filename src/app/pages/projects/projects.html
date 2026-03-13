@@ -62,19 +62,6 @@
       @for (project of filteredProjects(); track project.id) {
         <div class="project-card" [class.project-card--favorite]="isFavorite(project.id)">
           <div class="project-card__header">
-            <div class="project-card__badges">
-              @if (project.archived_at) {
-                <span class="badge bg-secondary">
-                  <i class="bi bi-pause-circle me-1"></i> Disabled
-                </span>
-              }
-              <span class="badge bg-{{ getStatusClass(project.status) }}">
-                {{ project.status.replace('_', ' ') }}
-              </span>
-              <span class="badge bg-{{ getPriorityClass(project.priority) }}">
-                {{ project.priority }}
-              </span>
-            </div>
             <div class="project-card__actions">
               @if (project.visibility === 'restricted') {
                 <i class="bi bi-lock-fill text-muted" title="Restricted"></i>
@@ -89,10 +76,12 @@
               </button>
             </div>
           </div>
-          <h3 class="project-card__title">
-            <a [routerLink]="['/projects', project.id]">{{ project.title }}</a>
-          </h3>
-          <p class="project-card__brief">{{ project.brief }}</p>
+          <div class="project-card__main">
+            <h3 class="project-card__title">
+              <a [routerLink]="['/projects', project.id]">{{ project.title }}</a>
+            </h3>
+            <p class="project-card__brief">{{ project.brief }}</p>
+          </div>
           <div class="project-card__meta">
             <div class="project-card__dates">
               <span><i class="bi bi-calendar me-1"></i> {{ formatDate(project.start_date) }}</span>
@@ -122,22 +111,37 @@
               </div>
             }
           </div>
-          <div class="project-card__footer">
-            @if (isUser()) {
-              @if (hasSubmittedInterest(project.id)) {
-                <span class="interest-badge">
-                  <i class="bi bi-check-circle-fill me-1"></i> Interest Submitted
-                </span>
+          <div class="project-card__footer-wrap">
+            <div class="project-card__footer">
+              @if (isUser()) {
+                @if (hasSubmittedInterest(project.id)) {
+                  <span class="interest-badge">
+                    <i class="bi bi-check-circle-fill me-1"></i> Interest Submitted
+                  </span>
+                } @else {
+                  <button class="btn btn-sm btn-primary" (click)="openInterestModal(project.id)">
+                    <i class="bi bi-heart me-1"></i> Show Interest
+                  </button>
+                }
               } @else {
-                <button class="btn btn-sm btn-primary" (click)="openInterestModal(project.id)">
-                  <i class="bi bi-heart me-1"></i> Show Interest
-                </button>
+                <a [routerLink]="['/projects', project.id]" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-eye me-1"></i> View Details
+                </a>
               }
-            } @else {
-              <a [routerLink]="['/projects', project.id]" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-eye me-1"></i> View Details
-              </a>
-            }
+            </div>
+            <div class="project-card__badges">
+              @if (project.archived_at) {
+                <span class="badge bg-secondary">
+                  <i class="bi bi-pause-circle me-1"></i> Disabled
+                </span>
+              }
+              <span class="badge bg-{{ getStatusClass(project.status) }}">
+                {{ project.status.replace('_', ' ') }}
+              </span>
+              <span class="badge bg-{{ getPriorityClass(project.priority) }}">
+                {{ project.priority }}
+              </span>
+            </div>
           </div>
         </div>
       }

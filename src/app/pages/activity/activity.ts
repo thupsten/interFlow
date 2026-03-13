@@ -49,12 +49,12 @@ export class Activity implements OnInit, AfterViewInit {
       }
     } finally {
       this.loading.set(false);
+      // Charts are inside @if (stats()) - wait for DOM to render
+      setTimeout(() => this.renderCharts(), 150);
     }
   }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => this.renderCharts(), 100);
-  }
+  ngAfterViewInit(): void {}
 
   private calculateStats(activities: ActivityLog[]): void {
     const dailyMap = new Map<string, number>();

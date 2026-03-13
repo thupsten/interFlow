@@ -1,7 +1,10 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { Api } from '../../services/api';
 import { UserService } from '../../services/user.service';
+import { SnackbarService } from '../../services/snackbar.service';
+import { environment } from '../../../environments/environment';
 import type { Profile, UserRole } from '../../interfaces/database.types';
 
 @Component({
@@ -14,11 +17,13 @@ import type { Profile, UserRole } from '../../interfaces/database.types';
 export class UserManagement implements OnInit {
   readonly api = inject(Api);
   readonly userService = inject(UserService);
+  readonly snackbar = inject(SnackbarService);
   
   readonly Math = Math;
 
   readonly loading = signal(true);
   readonly users = signal<Profile[]>([]);
+  readonly pendingInvites = signal<Profile[]>([]);
   readonly searchQuery = signal('');
   readonly selectedRole = signal<string>('all');
 
@@ -35,9 +40,7 @@ export class UserManagement implements OnInit {
 
   inviteForm = {
     email: '',
-    full_name: '',
     role: 'user' as UserRole,
-    department: '',
   };
 
   // Edit Modal
@@ -135,15 +138,19 @@ export class UserManagement implements OnInit {
   async loadUsers(): Promise<void> {
     this.loading.set(true);
     try {
-      const users = await this.userService.getUsers();
+      const [users, pending] = await Promise.all([
+        this.userService.getUsers(),
+        this.userService.getPendingInvites(),
+      ]);
       this.users.set(users);
+      this.pendingInvites.set(pending);
     } finally {
       this.loading.set(false);
     }
   }
 
   openInviteModal(): void {
-    this.inviteForm = { email: '', full_name: '', role: 'user', department: '' };
+    this.inviteForm = { email: '', role: 'user' };
     this.inviteError.set(null);
     this.inviteSuccess.set(false);
     this.showInviteModal.set(true);
@@ -154,12 +161,11 @@ export class UserManagement implements OnInit {
   }
 
   async inviteUser(): Promise<void> {
-    if (!this.inviteForm.email || !this.inviteForm.full_name) {
-      this.inviteError.set('Email and full name are required');
+    if (!this.inviteForm.email?.trim()) {
+      this.inviteError.set('Email is required');
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.inviteForm.email)) {
       this.inviteError.set('Please enter a valid email address');
@@ -170,18 +176,30 @@ export class UserManagement implements OnInit {
     this.inviteError.set(null);
 
     try {
-      // Call the invite-user Edge Function
+      const appUrl = (environment as { appUrl?: string }).appUrl ?? window.location.origin;
       const { data, error } = await this.api.supabase.functions.invoke('invite-user', {
         body: {
-          email: this.inviteForm.email,
-          full_name: this.inviteForm.full_name,
+          email: this.inviteForm.email.trim(),
           role: this.inviteForm.role,
-          department: this.inviteForm.department || null,
+          appUrl,
         },
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        let msg = 'Failed to send invitation';
+        if (error instanceof FunctionsHttpError && error.context) {
+          try {
+            const body = await error.context.json();
+            if (body?.error) msg = body.error;
+          } catch {
+            msg = error.message;
+          }
+        } else if (error instanceof Error) {
+          msg = error.message;
+        }
+        throw new Error(msg);
+      }
+      if (data?.error) throw new Error(data.error);
 
       this.inviteSuccess.set(true);
       await this.loadUsers();
@@ -236,7 +254,7 @@ export class UserManagement implements OnInit {
 
       this.closeEditModal();
     } catch (err) {
-      alert('Failed to update user');
+      this.snackbar.error('Failed to update user');
     } finally {
       this.saving.set(false);
     }
@@ -251,7 +269,7 @@ export class UserManagement implements OnInit {
         list.map((u) => (u.id === user.id ? { ...u, status: 'deactivated' as const } : u))
       );
     } catch {
-      alert('Failed to deactivate user');
+      this.snackbar.error('Failed to deactivate user');
     }
   }
 
@@ -262,7 +280,7 @@ export class UserManagement implements OnInit {
         list.map((u) => (u.id === user.id ? { ...u, status: 'active' as const } : u))
       );
     } catch {
-      alert('Failed to activate user');
+      this.snackbar.error('Failed to activate user');
     }
   }
 

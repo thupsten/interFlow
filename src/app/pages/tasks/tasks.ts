@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api } from '../../services/api';
+import { SnackbarService } from '../../services/snackbar.service';
 import { TaskService } from '../../services/task.service';
 import type { Task } from '../../interfaces/database.types';
 
@@ -14,6 +15,7 @@ import type { Task } from '../../interfaces/database.types';
 export class Tasks implements OnInit {
   readonly api = inject(Api);
   readonly taskService = inject(TaskService);
+  readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
   readonly tasks = signal<Task[]>([]);
@@ -64,7 +66,7 @@ export class Tasks implements OnInit {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
       console.error('Complete task error:', err);
-      alert(`Failed to complete task: ${msg}\n\nIf this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
+      this.snackbar.error(`Failed to complete task: ${msg}. If this is a permission error, run the SQL in supabase/RUN_THIS_TO_FIX_TASK_START.md`);
     }
   }
 

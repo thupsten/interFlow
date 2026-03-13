@@ -34,7 +34,7 @@
     } @else {
       <!-- User Info -->
       <div class="user-info">
-        <div class="user-info__avatar">{{ form.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?' }}</div>
+        <div class="user-info__avatar">{{ getInitials() }}</div>
         <div class="user-info__details">
           <span class="user-info__email">{{ userEmail() }}</span>
           <span class="user-info__role badge bg-primary">{{ getRoleLabel(userRole()) }}</span>

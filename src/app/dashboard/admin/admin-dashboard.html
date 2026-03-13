@@ -24,8 +24,11 @@
         <div class="stat-card__icon"><i class="bi bi-people-fill"></i></div>
         <div class="stat-card__data">
           <span class="stat-card__value">{{ stats().totalUsers }}</span>
-          <span class="stat-card__label">Total Users</span>
+          <span class="stat-card__label">Verified Users</span>
           <span class="stat-card__sub">{{ stats().activeUsers }} active</span>
+          @if (stats().pendingInvites > 0) {
+            <span class="stat-card__sub text-warning">{{ stats().pendingInvites }} pending invite(s)</span>
+          }
         </div>
       </div>
       <div class="stat-card stat-card--projects">

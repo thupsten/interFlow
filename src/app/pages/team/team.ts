@@ -1,7 +1,10 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { Api } from '../../services/api';
 import { UserService } from '../../services/user.service';
+import { SnackbarService } from '../../services/snackbar.service';
+import { environment } from '../../../environments/environment';
 import type { Profile, UserRole } from '../../interfaces/database.types';
 
 @Component({
@@ -14,11 +17,22 @@ import type { Profile, UserRole } from '../../interfaces/database.types';
 export class Team implements OnInit {
   readonly api = inject(Api);
   readonly userService = inject(UserService);
+  readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
   readonly users = signal<Profile[]>([]);
   readonly searchQuery = signal('');
   readonly selectedRole = signal<string>('all');
+
+  readonly showInviteModal = signal(false);
+  readonly inviting = signal(false);
+  readonly inviteError = signal<string | null>(null);
+  readonly inviteSuccess = signal(false);
+
+  inviteForm = {
+    email: '',
+    role: 'user' as UserRole,
+  };
 
   readonly filteredUsers = computed(() => {
     let result = this.users();
@@ -37,11 +51,81 @@ export class Team implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    await this.loadUsers();
+  }
+
+  async loadUsers(): Promise<void> {
+    this.loading.set(true);
     try {
       const users = await this.userService.getUsers();
       this.users.set(users);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  openInviteModal(): void {
+    this.inviteForm = { email: '', role: 'user' };
+    this.inviteError.set(null);
+    this.inviteSuccess.set(false);
+    this.showInviteModal.set(true);
+  }
+
+  closeInviteModal(): void {
+    this.showInviteModal.set(false);
+  }
+
+  async inviteUser(): Promise<void> {
+    if (!this.inviteForm.email?.trim()) {
+      this.inviteError.set('Email is required');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.inviteForm.email)) {
+      this.inviteError.set('Please enter a valid email address');
+      return;
+    }
+
+    this.inviting.set(true);
+    this.inviteError.set(null);
+
+    try {
+      const appUrl = (environment as { appUrl?: string }).appUrl ?? window.location.origin;
+      const { data, error } = await this.api.supabase.functions.invoke('invite-user', {
+        body: {
+          email: this.inviteForm.email.trim(),
+          role: this.inviteForm.role,
+          appUrl,
+        },
+      });
+
+      if (error) {
+        let msg = 'Failed to send invitation';
+        if (error instanceof FunctionsHttpError && error.context) {
+          try {
+            const body = await error.context.json();
+            if (body?.error) msg = body.error;
+          } catch {
+            msg = error.message;
+          }
+        } else if (error instanceof Error) {
+          msg = error.message;
+        }
+        throw new Error(msg);
+      }
+      if (data?.error) throw new Error(data.error);
+
+      this.inviteSuccess.set(true);
+      await this.loadUsers();
+
+      setTimeout(() => {
+        this.closeInviteModal();
+      }, 2000);
+    } catch (err) {
+      this.inviteError.set(err instanceof Error ? err.message : 'Failed to send invitation');
+    } finally {
+      this.inviting.set(false);
     }
   }
 
@@ -52,7 +136,7 @@ export class Team implements OnInit {
         list.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
       );
     } catch (err) {
-      alert('Failed to update role');
+      this.snackbar.error('Failed to update role');
     }
   }
 

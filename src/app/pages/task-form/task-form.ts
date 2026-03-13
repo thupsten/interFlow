@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Api } from '../../services/api';
+import { SnackbarService } from '../../services/snackbar.service';
 import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
 import { NotificationService } from '../../services/notification.service';
@@ -21,6 +22,7 @@ export class TaskForm implements OnInit {
   readonly taskService = inject(TaskService);
   readonly projectService = inject(ProjectService);
   readonly notificationService = inject(NotificationService);
+  readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -101,7 +103,7 @@ export class TaskForm implements OnInit {
 
       this.router.navigate(['/projects', project.id]);
     } catch (err) {
-      alert('Failed to create task');
+      this.snackbar.error('Failed to create task');
     } finally {
       this.saving.set(false);
     }

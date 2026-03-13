@@ -1,5 +1,12 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+
+/* Snackbar error styling - red background for error messages */
+.snackbar-error .mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: #dc2626;
+  --mat-snack-bar-button-color: #fff;
+}
 
 :root {
   --primary: #2B318D;

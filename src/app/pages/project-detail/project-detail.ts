@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UpperCasePipe } from '@angular/common';
 import { Api } from '../../services/api';
+import { SnackbarService } from '../../services/snackbar.service';
 import { ProjectService } from '../../services/project.service';
 import { TaskService } from '../../services/task.service';
 import { CommentService } from '../../services/comment.service';
@@ -24,6 +25,7 @@ export class ProjectDetail implements OnInit {
   readonly taskService = inject(TaskService);
   readonly commentService = inject(CommentService);
   readonly notificationService = inject(NotificationService);
+  readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
   readonly project = signal<Project | null>(null);
@@ -122,7 +124,7 @@ export class ProjectDetail implements OnInit {
       await this.commentService.deleteComment(commentId);
       this.comments.update((list) => list.filter((c) => c.id !== commentId));
     } catch {
-      alert('Failed to delete comment');
+      this.snackbar.error('Failed to delete comment');
     }
   }
 
@@ -197,9 +199,9 @@ export class ProjectDetail implements OnInit {
     const message = prompt('Why are you interested in this project? (optional)');
     try {
       await this.projectService.showInterest(project.id, message || undefined);
-      alert('Interest submitted successfully! You will be notified when reviewed.');
+      this.snackbar.success('Interest submitted successfully! You will be notified when reviewed.');
     } catch {
-      alert('Failed to submit interest');
+      this.snackbar.error('Failed to submit interest');
     }
   }
 
@@ -216,7 +218,7 @@ export class ProjectDetail implements OnInit {
         this.project.set(project);
       }
     } catch {
-      alert('Failed to approve');
+      this.snackbar.error('Failed to approve');
     }
   }
 
@@ -228,7 +230,7 @@ export class ProjectDetail implements OnInit {
         list.map((i) => (i.id === interest.id ? { ...i, status: 'rejected' as const } : i))
       );
     } catch {
-      alert('Failed to reject');
+      this.snackbar.error('Failed to reject');
     }
   }
 
@@ -241,39 +243,42 @@ export class ProjectDetail implements OnInit {
 
   async archiveProject(): Promise<void> {
     const project = this.project();
-    if (!project || !this.api.isAdmin()) return;
-    if (!confirm(`Disable project "${project.title}"? It will be hidden from everyone except admins.`)) return;
+    if (!project || !this.canManage()) return;
+    if (!confirm(`Disable project "${project.title}"? It will be hidden from everyone except admins and managers.`)) return;
 
     try {
       await this.projectService.archiveProject(project.id);
       this.project.update((p) => (p ? { ...p, archived_at: new Date().toISOString() } : p));
-    } catch {
-      alert('Failed to disable project');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
+      this.snackbar.error(`Failed to disable project: ${msg}`);
     }
   }
 
   async unarchiveProject(): Promise<void> {
     const project = this.project();
-    if (!project || !this.api.isAdmin()) return;
+    if (!project || !this.canManage()) return;
 
     try {
       await this.projectService.unarchiveProject(project.id);
       this.project.update((p) => (p ? { ...p, archived_at: null } : p));
-    } catch {
-      alert('Failed to enable project');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
+      this.snackbar.error(`Failed to enable project: ${msg}`);
     }
   }
 
   async deleteProject(): Promise<void> {
     const project = this.project();
-    if (!project || !this.api.isAdmin()) return;
+    if (!project || !this.canManage()) return;
     if (!confirm(`Permanently delete project "${project.title}"? This cannot be undone. The project will be hidden from everyone.`)) return;
 
     try {
       await this.projectService.deleteProject(project.id);
       this.router.navigate(['/projects']);
-    } catch {
-      alert('Failed to delete project');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? String(err);
+      this.snackbar.error(`Failed to delete project: ${msg}`);
     }
   }
 
@@ -388,7 +393,7 @@ export class ProjectDetail implements OnInit {
       this.newComment = '';
       this.showMentions = false;
     } catch {
-      alert('Failed to add comment');
+      this.snackbar.error('Failed to add comment');
     }
   }
 }

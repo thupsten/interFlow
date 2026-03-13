@@ -1,18 +1,66 @@
-<div class="page">
+<div class="page calendar-page">
   <div class="page__header">
     <div>
       <h1 class="page__title">Calendar</h1>
-      <p class="page__subtitle">View deadlines and scheduled work</p>
+      <p class="page__subtitle">View deadlines, start dates, and scheduled work</p>
     </div>
-    <div class="calendar-nav">
-      <button class="btn btn-outline-secondary" (click)="goToToday()">Today</button>
-      <button class="btn btn-outline-secondary" (click)="prevMonth()">
-        <i class="bi bi-chevron-left"></i>
-      </button>
-      <span class="calendar-nav__month">{{ currentMonth() }}</span>
-      <button class="btn btn-outline-secondary" (click)="nextMonth()">
-        <i class="bi bi-chevron-right"></i>
-      </button>
+    <div class="calendar-controls">
+      <div class="view-tabs">
+        <button
+          class="view-tab"
+          [class.active]="viewMode() === 'month'"
+          (click)="setViewMode('month')"
+        >
+          <i class="bi bi-calendar3"></i> Month
+        </button>
+        <button
+          class="view-tab"
+          [class.active]="viewMode() === 'week'"
+          (click)="setViewMode('week')"
+        >
+          <i class="bi bi-calendar-week"></i> Week
+        </button>
+        <button
+          class="view-tab"
+          [class.active]="viewMode() === 'agenda'"
+          (click)="setViewMode('agenda')"
+        >
+          <i class="bi bi-list-ul"></i> Agenda
+        </button>
+      </div>
+      <div class="filter-tabs">
+        <button
+          class="filter-tab"
+          [class.active]="eventFilter() === 'all'"
+          (click)="setEventFilter('all')"
+        >
+          All
+        </button>
+        <button
+          class="filter-tab"
+          [class.active]="eventFilter() === 'tasks'"
+          (click)="setEventFilter('tasks')"
+        >
+          <i class="bi bi-check2-square"></i> Tasks
+        </button>
+        <button
+          class="filter-tab"
+          [class.active]="eventFilter() === 'projects'"
+          (click)="setEventFilter('projects')"
+        >
+          <i class="bi bi-folder"></i> Projects
+        </button>
+      </div>
+      <div class="calendar-nav">
+        <button class="btn btn-outline-secondary" (click)="goToToday()">Today</button>
+        <button class="btn btn-outline-secondary" (click)="prevMonth()">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <span class="calendar-nav__month">{{ currentMonth() }}</span>
+        <button class="btn btn-outline-secondary" (click)="nextMonth()">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -22,60 +70,85 @@
       <span>Loading calendar...</span>
     </div>
   } @else {
-    <div class="calendar">
-      <div class="calendar__header">
-        @for (day of weekDays; track day) {
-          <div class="calendar__weekday">{{ day }}</div>
-        }
-      </div>
-      <div class="calendar__grid">
-        @for (day of calendarDays(); track day.date.toISOString()) {
-          <div
-            class="calendar__day"
-            [class.other-month]="!day.isCurrentMonth"
-            [class.today]="day.isToday"
-            [class.has-events]="hasEvents(day)"
-            (click)="selectDay(day)"
-          >
-            <span class="calendar__date">{{ day.date.getDate() }}</span>
-            @if (hasEvents(day)) {
-              <div class="calendar__events">
-                @for (task of day.tasks.slice(0, 2); track task.id) {
-                  <div class="event event--task">
-                    <span class="event__dot bg-{{ getPriorityClass(task.priority) }}"></span>
-                    <span class="event__title">{{ task.title }}</span>
-                  </div>
+    <div class="calendar-layout">
+      <main class="calendar-main">
+        <div class="calendar" [class.calendar--week]="viewMode() === 'week'" [class.calendar--agenda]="viewMode() === 'agenda'">
+          @if (viewMode() !== 'agenda') {
+            <div class="calendar__header">
+              @for (day of weekDays; track day) {
+                <div class="calendar__weekday">{{ day }}</div>
+              }
+            </div>
+          }
+          <div class="calendar__grid" [class.calendar__grid--week]="viewMode() === 'week'" [class.calendar__grid--agenda]="viewMode() === 'agenda'">
+            @for (day of calendarDays(); track day.date.toISOString()) {
+              <div
+                class="calendar__day"
+                [class.other-month]="!day.isCurrentMonth && viewMode() === 'month'"
+                [class.today]="day.isToday"
+                [class.has-events]="hasEvents(day)"
+                [class.calendar__day--week]="viewMode() === 'week'"
+                (click)="selectDay(day)"
+              >
+                <span class="calendar__date">{{ day.date.getDate() }}</span>
+                @if (viewMode() === 'agenda') {
+                  <span class="calendar__weekday-inline">{{ day.date.toLocaleDateString('default', { weekday: 'short' }) }}</span>
                 }
-                @for (project of day.projects.slice(0, 2); track project.id) {
-                  <div class="event event--project">
-                    <span class="event__dot bg-info"></span>
-                    <span class="event__title">{{ project.title }}</span>
+                @if (hasEvents(day)) {
+                  <div class="calendar__events">
+                    @for (event of day.events.slice(0, viewMode() === 'agenda' ? 99 : (viewMode() === 'week' ? 8 : 2)); track event.id) {
+                      <div class="event event--{{ event.type }}" [class.event--task]="event.type.startsWith('task')" [class.event--project]="event.type.startsWith('project')">
+                        <span class="event__dot bg-{{ event.priority ? getPriorityClass(event.priority) : 'info' }}"></span>
+                        @if (viewMode() === 'week' || viewMode() === 'agenda') {
+                          <span class="event__label">{{ getEventLabel(event) }}</span>
+                        }
+                        <span class="event__title">{{ event.title }}</span>
+                      </div>
+                    }
+                    @if (viewMode() !== 'agenda' && day.events.length > (viewMode() === 'week' ? 8 : 2)) {
+                      <div class="event__more">+{{ day.events.length - (viewMode() === 'week' ? 8 : 2) }} more</div>
+                    }
                   </div>
-                }
-                @if (day.tasks.length + day.projects.length > 2) {
-                  <div class="event__more">+{{ day.tasks.length + day.projects.length - 2 }} more</div>
                 }
               </div>
             }
           </div>
-        }
-      </div>
-    </div>
+        </div>
 
-    <!-- Legend -->
-    <div class="legend">
-      <div class="legend__item">
-        <span class="legend__dot bg-danger"></span> High Priority
-      </div>
-      <div class="legend__item">
-        <span class="legend__dot bg-warning"></span> Medium Priority
-      </div>
-      <div class="legend__item">
-        <span class="legend__dot bg-secondary"></span> Low Priority
-      </div>
-      <div class="legend__item">
-        <span class="legend__dot bg-info"></span> Project Deadline
-      </div>
+        <div class="legend">
+          <div class="legend__item">
+            <span class="legend__dot bg-danger"></span> High Priority
+          </div>
+          <div class="legend__item">
+            <span class="legend__dot bg-warning"></span> Medium
+          </div>
+          <div class="legend__item">
+            <span class="legend__dot bg-secondary"></span> Low
+          </div>
+          <div class="legend__item">
+            <span class="legend__dot bg-info"></span> Project
+          </div>
+        </div>
+      </main>
+
+      <aside class="upcoming-sidebar">
+        <h3 class="upcoming__title"><i class="bi bi-clock-history"></i> Upcoming</h3>
+        @if (upcomingEvents().length > 0) {
+          <ul class="upcoming__list">
+            @for (event of upcomingEvents(); track event.id) {
+              <li>
+                <a [routerLink]="getEventRoute(event)" class="upcoming__item">
+                  <span class="upcoming__date">{{ event.dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric' }) }}</span>
+                  <span class="upcoming__label">{{ getEventLabel(event) }}</span>
+                  <span class="upcoming__event-title">{{ event.title }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="upcoming__empty">No upcoming events</p>
+        }
+      </aside>
     </div>
   }
 </div>
@@ -93,28 +166,25 @@
         <button type="button" class="btn-close" (click)="closeDetail()"></button>
       </div>
       <div class="modal-body">
-        @if (selectedDay()!.tasks.length > 0) {
-          <h6 class="mb-3"><i class="bi bi-check2-square me-2"></i> Tasks Due</h6>
+        @if (selectedDay()!.events.length > 0) {
           <div class="event-list">
-            @for (task of selectedDay()!.tasks; track task.id) {
-              <a [routerLink]="['/projects', task.project_id]" class="event-item">
-                <span class="badge bg-{{ getPriorityClass(task.priority) }} me-2">{{ task.priority }}</span>
-                <span class="badge bg-{{ getStatusClass(task.status) }} me-2">{{ task.status.replace('_', ' ') }}</span>
-                <span class="event-item__title">{{ task.title }}</span>
+            @for (event of selectedDay()!.events; track event.id) {
+              <a [routerLink]="getEventRoute(event)" class="event-item">
+                <span class="event-item__badge event-item__badge--{{ event.type }}">{{ getEventLabel(event) }}</span>
+                @if (event.priority) {
+                  <span class="badge bg-{{ getPriorityClass(event.priority) }} me-2">{{ event.priority }}</span>
+                }
+                @if (event.status) {
+                  <span class="badge bg-{{ getStatusClass(event.status) }} me-2">{{ event.status.replace('_', ' ') }}</span>
+                }
+                <span class="event-item__title">{{ event.title }}</span>
               </a>
             }
           </div>
-        }
-
-        @if (selectedDay()!.projects.length > 0) {
-          <h6 class="mb-3 mt-4"><i class="bi bi-folder me-2"></i> Project Deadlines</h6>
-          <div class="event-list">
-            @for (project of selectedDay()!.projects; track project.id) {
-              <a [routerLink]="['/projects', project.id]" class="event-item">
-                <span class="badge bg-{{ getStatusClass(project.status) }} me-2">{{ project.status.replace('_', ' ') }}</span>
-                <span class="event-item__title">{{ project.title }}</span>
-              </a>
-            }
+        } @else {
+          <div class="modal-empty">
+            <i class="bi bi-calendar-x"></i>
+            <p>No events on this day</p>
           </div>
         }
       </div>
