@@ -53,8 +53,14 @@
           class="form-control"
           [(ngModel)]="form.department"
           name="department"
-          placeholder="Enter your department"
+          list="profile-department-list"
+          placeholder="e.g., Marketing, 3D Artist, UI/UX"
         />
+        <datalist id="profile-department-list">
+          @for (dept of departmentOptions; track dept) {
+            <option [value]="dept"></option>
+          }
+        </datalist>
       </div>
 
       <div class="mb-3">

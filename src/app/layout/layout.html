@@ -50,12 +50,12 @@
 
       <div class="topbar__right">
         <!-- Create Project Button (Admin & Manager) -->
-        @if (api.isAdmin() || api.isManager()) {
+        <!-- @if (api.isAdmin() || api.isManager()) {
           <a routerLink="/projects/new" class="topbar__create-btn">
             <i class="bi bi-plus-lg me-1"></i>
             <span class="d-none d-md-inline">New Project</span>
           </a>
-        }
+        } -->
 
         <!-- Notifications -->
         <div class="topbar__dropdown" (click)="$event.stopPropagation()">

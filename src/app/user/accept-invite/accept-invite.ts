@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { DEPARTMENT_OPTIONS } from '../../constants/departments';
 import { Api } from '../../services/api';
 
 @Component({
@@ -23,6 +24,7 @@ export class AcceptInvite implements OnInit {
   readonly userEmail = signal<string>('');
   readonly userName = signal<string>('');
   readonly userRole = signal<string>('');
+  readonly departmentOptions = DEPARTMENT_OPTIONS;
 
   form = {
     password: '',

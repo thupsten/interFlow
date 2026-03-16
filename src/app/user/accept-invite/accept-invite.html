@@ -69,9 +69,15 @@
             class="form-control form-control-lg"
             [(ngModel)]="form.department"
             name="department"
-            placeholder="e.g., Engineering, Marketing"
+            list="accept-invite-department-list"
+            placeholder="e.g., Marketing, 3D Artist, UI/UX"
             [disabled]="submitting()"
           />
+          <datalist id="accept-invite-department-list">
+            @for (dept of departmentOptions; track dept) {
+              <option [value]="dept"></option>
+            }
+          </datalist>
         </div>
 
         <div class="mb-3">

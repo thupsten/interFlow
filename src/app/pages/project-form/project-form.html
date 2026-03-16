@@ -93,6 +93,7 @@
               class="form-control"
               [(ngModel)]="form.expected_end_date"
               name="expected_end_date"
+              [min]="form.start_date"
               required
             />
           </div>
@@ -181,7 +182,7 @@
         <h3 class="form-section__title">
           <i class="bi bi-people me-2"></i>Project Managers
         </h3>
-        <p class="form-section__hint">Assign managers to oversee this project</p>
+        <p class="form-section__hint">Assign managers to oversee this project. Admins have full access to all projects.</p>
         <div class="managers-grid">
           @for (manager of managers(); track manager.id) {
             <button

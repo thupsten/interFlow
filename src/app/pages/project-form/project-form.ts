@@ -84,7 +84,7 @@ export class ProjectForm implements OnInit {
         this.userService.getUsers(),
       ]);
       this.tags.set(tags);
-      this.managers.set(users.filter((u) => u.role === 'manager' || u.role === 'admin'));
+      this.managers.set(users.filter((u) => u.role === 'manager'));
       this.employees.set(users.filter((u) => u.role === 'user' && u.status === 'active'));
 
       if (id) {
@@ -158,6 +158,10 @@ export class ProjectForm implements OnInit {
   async submit(): Promise<void> {
     if (!this.form.title || !this.form.brief || !this.form.expected_end_date) {
       this.error.set('Please fill in all required fields');
+      return;
+    }
+    if (this.form.expected_end_date < this.form.start_date) {
+      this.error.set('End date cannot be before start date');
       return;
     }
 

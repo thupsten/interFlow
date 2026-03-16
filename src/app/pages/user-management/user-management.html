@@ -25,6 +25,7 @@
       <option value="all">All Roles</option>
       <option value="admin">Admin</option>
       <option value="manager">Manager</option>
+      <option value="it_manager">IT Manager</option>
       <option value="user">Employee</option>
     </select>
     <select class="form-select filters__page-size" [ngModel]="pageSize()" (ngModelChange)="changePageSize($event)">
@@ -53,6 +54,10 @@
     <div class="stat-box stat-box--manager">
       <span class="stat-box__value">{{ users().filter(u => u.role === 'manager').length }}</span>
       <span class="stat-box__label">Managers</span>
+    </div>
+    <div class="stat-box stat-box--it-manager">
+      <span class="stat-box__value">{{ users().filter(u => u.role === 'it_manager').length }}</span>
+      <span class="stat-box__label">IT Managers</span>
     </div>
     <div class="stat-box stat-box--user">
       <span class="stat-box__value">{{ users().filter(u => u.role === 'user').length }}</span>
@@ -207,7 +212,7 @@
         }
 
         <p class="text-muted small mb-3">
-          Enter email and role. The invited user will set their name and other details when they complete registration.
+          Enter email and select role. Optionally add department. The invited user will set their name and other details when they complete registration.
         </p>
 
         <div class="mb-3">
@@ -223,11 +228,11 @@
 
         <div class="mb-3">
           <label class="form-label">Role <span class="text-danger">*</span></label>
-          <select class="form-select" [(ngModel)]="inviteForm.role" [disabled]="inviting()">
-            <option value="user">Employee</option>
+          <select class="form-select" [(ngModel)]="inviteForm.role" name="inviteRole" [disabled]="inviting()">
+            <option value="admin">Admin</option>
             <option value="manager">Manager</option>
             <option value="it_manager">IT Manager</option>
-            <option value="admin">Admin</option>
+            <option value="user">Employee</option>
           </select>
           <div class="form-text">
             @switch (inviteForm.role) {
@@ -249,6 +254,16 @@
               }
             }
           </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Department</label>
+          <select class="form-select" [(ngModel)]="inviteForm.department" name="inviteDepartment" [disabled]="inviting()">
+            <option value="">Select department (optional)</option>
+            @for (dept of departmentOptions; track dept) {
+              <option [value]="dept">{{ dept }}</option>
+            }
+          </select>
         </div>
       </div>
       <div class="modal-footer">
@@ -288,16 +303,22 @@
 
         <div class="mb-3">
           <label class="form-label">Role</label>
-          <select class="form-select" [(ngModel)]="editForm.role" [disabled]="saving()">
-            <option value="user">Employee</option>
-            <option value="manager">Manager</option>
+          <select class="form-select" [(ngModel)]="editForm.role" name="editRole" [disabled]="saving()">
             <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="it_manager">IT Manager</option>
+            <option value="user">Employee</option>
           </select>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Department</label>
-          <input type="text" class="form-control" [(ngModel)]="editForm.department" [disabled]="saving()" />
+          <select class="form-select" [(ngModel)]="editForm.department" name="editDepartment" [disabled]="saving()">
+            <option value="">No department</option>
+            @for (dept of departmentOptions; track dept) {
+              <option [value]="dept">{{ dept }}</option>
+            }
+          </select>
         </div>
 
         <div class="mb-3">

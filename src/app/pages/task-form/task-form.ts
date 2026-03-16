@@ -74,6 +74,10 @@ export class TaskForm implements OnInit {
   async save(): Promise<void> {
     const project = this.project();
     if (!project || !this.form.title.trim()) return;
+    if (this.form.start_date && this.form.expected_end_date && this.form.expected_end_date < this.form.start_date) {
+      this.snackbar.error('Due date cannot be before start date');
+      return;
+    }
 
     this.saving.set(true);
     try {

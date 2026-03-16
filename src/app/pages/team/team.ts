@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FunctionsHttpError } from '@supabase/supabase-js';
+import { DEPARTMENT_OPTIONS } from '../../constants/departments';
 import { Api } from '../../services/api';
 import { UserService } from '../../services/user.service';
 import { SnackbarService } from '../../services/snackbar.service';
@@ -32,7 +33,10 @@ export class Team implements OnInit {
   inviteForm = {
     email: '',
     role: 'user' as UserRole,
+    department: '',
   };
+
+  readonly departmentOptions = DEPARTMENT_OPTIONS;
 
   readonly filteredUsers = computed(() => {
     let result = this.users();
@@ -65,7 +69,7 @@ export class Team implements OnInit {
   }
 
   openInviteModal(): void {
-    this.inviteForm = { email: '', role: 'user' };
+    this.inviteForm = { email: '', role: 'user' as UserRole, department: '' };
     this.inviteError.set(null);
     this.inviteSuccess.set(false);
     this.showInviteModal.set(true);
@@ -96,6 +100,7 @@ export class Team implements OnInit {
         body: {
           email: this.inviteForm.email.trim(),
           role: this.inviteForm.role,
+          department: this.inviteForm.department || undefined,
           appUrl,
         },
       });
@@ -145,7 +150,7 @@ export class Team implements OnInit {
       admin: 'Admin',
       manager: 'Manager',
       it_manager: 'IT Manager',
-      user: 'User',
+      user: 'Employee',
     };
     return map[role] || role;
   }

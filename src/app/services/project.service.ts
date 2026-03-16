@@ -178,7 +178,10 @@ export class ProjectService {
   }
 
   async getPendingInterests(): Promise<InterestRequest[]> {
-    const { data, error } = await this.api.supabase
+    const userId = this.api.user()?.id;
+    const role = this.api.userRole();
+
+    let query = this.api.supabase
       .from('interest_requests')
       .select(`
         *,
@@ -188,6 +191,22 @@ export class ProjectService {
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
+    // Managers only see interests for their projects (same as getAllInterests)
+    if (role === 'manager' && userId) {
+      const { data: managerProjects } = await this.api.supabase
+        .from('project_managers')
+        .select('project_id')
+        .eq('user_id', userId);
+
+      if (managerProjects?.length) {
+        const projectIds = managerProjects.map((p) => p.project_id);
+        query = query.in('project_id', projectIds);
+      } else {
+        return [];
+      }
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return data as InterestRequest[];
   }

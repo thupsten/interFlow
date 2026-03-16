@@ -27,7 +27,8 @@
       <option value="all">All Roles</option>
       <option value="admin">Admin</option>
       <option value="manager">Manager</option>
-      <option value="user">User</option>
+      <option value="it_manager">IT Manager</option>
+      <option value="user">Employee</option>
     </select>
   </div>
 
@@ -72,7 +73,7 @@
                 <option value="admin">Admin</option>
                 <option value="manager">Manager</option>
                 <option value="it_manager">IT Manager</option>
-                <option value="user">User</option>
+                <option value="user">Employee</option>
               </select>
             </div>
           }
@@ -110,7 +111,7 @@
         }
 
         <p class="text-muted small mb-3">
-          Enter email and role. The invited user will set their name and other details when they complete registration.
+          Enter email and select role. Optionally add department. The invited user will set their name and other details when they complete registration.
         </p>
 
         <div class="mb-3">
@@ -126,32 +127,42 @@
 
         <div class="mb-3">
           <label class="form-label">Role <span class="text-danger">*</span></label>
-          <select class="form-select" [(ngModel)]="inviteForm.role" [disabled]="inviting()">
-            <option value="user">Employee</option>
+          <select class="form-select" [(ngModel)]="inviteForm.role" name="inviteRole" [disabled]="inviting()">
+            <option value="admin">Admin</option>
             <option value="manager">Manager</option>
             <option value="it_manager">IT Manager</option>
-            <option value="admin">Admin</option>
+            <option value="user">Employee</option>
           </select>
           <div class="form-text">
             @switch (inviteForm.role) {
               @case ('admin') {
                 <i class="bi bi-shield-fill text-danger me-1"></i>
-                Full platform access
+                Full platform access, can manage all projects and users
               }
               @case ('manager') {
                 <i class="bi bi-briefcase-fill text-primary me-1"></i>
-                Can manage assigned projects
+                Can manage assigned projects, review interests, create tasks
               }
               @case ('it_manager') {
                 <i class="bi bi-ticket-perforated text-info me-1"></i>
-                Can manage IT support tickets
+                Can manage IT support tickets, view who raised what
               }
               @case ('user') {
                 <i class="bi bi-person-fill text-secondary me-1"></i>
-                Can view projects, work on assigned tasks
+                Can view projects, show interest, work on assigned tasks
               }
             }
           </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Department</label>
+          <select class="form-select" [(ngModel)]="inviteForm.department" name="inviteDepartment" [disabled]="inviting()">
+            <option value="">Select department (optional)</option>
+            @for (dept of departmentOptions; track dept) {
+              <option [value]="dept">{{ dept }}</option>
+            }
+          </select>
         </div>
       </div>
       <div class="modal-footer">

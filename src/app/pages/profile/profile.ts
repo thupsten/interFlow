@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TitleCasePipe } from '@angular/common';
+import { DEPARTMENT_OPTIONS } from '../../constants/departments';
 import { Api } from '../../services/api';
 import { UserService } from '../../services/user.service';
 import type { Profile as ProfileType } from '../../interfaces/database.types';
@@ -16,6 +17,7 @@ export class Profile implements OnInit {
   readonly api = inject(Api);
   readonly userService = inject(UserService);
   readonly saving = signal(false);
+  readonly departmentOptions = DEPARTMENT_OPTIONS;
   readonly message = signal<{ type: 'success' | 'error'; text: string } | null>(null);
 
   form = {

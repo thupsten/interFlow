@@ -1,3 +1,29 @@
+.create-request-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb, 43, 49, 141), 0.2);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(var(--primary-rgb, 43, 49, 141), 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &--empty {
+    padding: 0.625rem 1.5rem;
+    font-size: 1rem;
+    margin-top: 1rem;
+  }
+}
+
 .page {
   max-width: 1000px;
   margin: 0 auto;

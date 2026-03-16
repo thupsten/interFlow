@@ -5,6 +5,7 @@ import { Api } from '../../services/api';
 import { UserService } from '../../services/user.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { environment } from '../../../environments/environment';
+import { DEPARTMENT_OPTIONS } from '../../constants/departments';
 import type { Profile, UserRole } from '../../interfaces/database.types';
 
 @Component({
@@ -41,7 +42,10 @@ export class UserManagement implements OnInit {
   inviteForm = {
     email: '',
     role: 'user' as UserRole,
+    department: '',
   };
+
+  readonly departmentOptions = DEPARTMENT_OPTIONS;
 
   // Edit Modal
   readonly showEditModal = signal(false);
@@ -150,7 +154,7 @@ export class UserManagement implements OnInit {
   }
 
   openInviteModal(): void {
-    this.inviteForm = { email: '', role: 'user' };
+    this.inviteForm = { email: '', role: 'user' as UserRole, department: '' };
     this.inviteError.set(null);
     this.inviteSuccess.set(false);
     this.showInviteModal.set(true);
@@ -182,6 +186,7 @@ export class UserManagement implements OnInit {
         body: {
           email: this.inviteForm.email.trim(),
           role: this.inviteForm.role,
+          department: this.inviteForm.department || undefined,
           appUrl,
         },
       });
@@ -286,7 +291,7 @@ export class UserManagement implements OnInit {
   }
 
   getRoleClass(role: string): string {
-    const map: Record<string, string> = { admin: 'danger', manager: 'primary', user: 'secondary' };
+    const map: Record<string, string> = { admin: 'danger', manager: 'primary', it_manager: 'info', user: 'secondary' };
     return map[role] || 'secondary';
   }
 
