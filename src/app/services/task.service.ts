@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { toLocalDateString } from '../utils/date';
 import { Api } from './api';
 import type { Task } from '../interfaces/database.types';
 
@@ -50,7 +51,7 @@ export class TaskService {
   }
 
   async getOverdueTasks(): Promise<Task[]> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateString(new Date());
 
     const { data, error } = await this.api.supabase
       .from('tasks')
@@ -158,7 +159,7 @@ export class TaskService {
 
   async getTaskStats() {
     const userId = this.api.user()?.id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateString(new Date());
 
     const [allTasks, myAssignments, overdue] = await Promise.all([
       this.api.supabase.from('tasks').select('id').is('deleted_at', null),

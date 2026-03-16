@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { toLocalDateString } from '../../utils/date';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UpperCasePipe } from '@angular/common';
@@ -64,7 +65,7 @@ export class ProjectDetail implements OnInit {
       inProgress: allTasks.filter((t) => t.status === 'in_progress').length,
       overdue: allTasks.filter((t) => {
         if (!t.expected_end_date || t.status === 'completed') return false;
-        return t.expected_end_date < new Date().toISOString().split('T')[0];
+        return t.expected_end_date < toLocalDateString(new Date());
       }).length,
     };
   });

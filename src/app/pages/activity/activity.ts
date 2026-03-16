@@ -1,4 +1,5 @@
 import { Component, OnInit, AfterViewInit, inject, signal, ElementRef, ViewChild } from '@angular/core';
+import { toLocalDateString } from '../../utils/date';
 import { Chart, registerables } from 'chart.js';
 import { Api } from '../../services/api';
 import type { ActivityLog } from '../../interfaces/database.types';
@@ -66,12 +67,13 @@ export class Activity implements OnInit, AfterViewInit {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      last7Days.push(d.toISOString().split('T')[0]);
-      dailyMap.set(d.toISOString().split('T')[0], 0);
+      const dateStr = toLocalDateString(d);
+      last7Days.push(dateStr);
+      dailyMap.set(dateStr, 0);
     }
 
     activities.forEach((a) => {
-      const date = a.created_at.split('T')[0];
+      const date = toLocalDateString(new Date(a.created_at));
       if (dailyMap.has(date)) {
         dailyMap.set(date, (dailyMap.get(date) || 0) + 1);
       }

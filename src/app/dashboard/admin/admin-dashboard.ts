@@ -1,4 +1,5 @@
 import { Component, OnInit, AfterViewInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
+import { toLocalDateString } from '../../utils/date';
 import { RouterLink } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { Api } from '../../services/api';
@@ -157,7 +158,7 @@ export class AdminDashboard implements OnInit, AfterViewInit {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(d);
       last7Days.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
       activityCounts.push(activities.filter(a => a.created_at.split('T')[0] === dateStr).length);
     }

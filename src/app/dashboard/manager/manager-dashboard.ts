@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { toLocalDateString } from '../../utils/date';
 import { RouterLink } from '@angular/router';
 import { Api } from '../../services/api';
 import { ProjectService } from '../../services/project.service';
@@ -106,7 +107,7 @@ export class ManagerDashboard implements OnInit {
       this.tasksToReview.set(this.mapTasks(reviewTasks || []));
 
       // Load overdue tasks
-      const today = new Date().toISOString().split('T')[0];
+      const today = toLocalDateString(new Date());
       const { data: overdue } = await this.api.supabase
         .from('tasks')
         .select(`*, project:projects(title)`)

@@ -131,6 +131,13 @@
                 <option value="company_wide">Company Wide</option>
                 <option value="restricted">Restricted</option>
               </select>
+              <small class="form-text text-muted" [class.text-warning]="form.visibility === 'restricted'">
+                @if (form.visibility === 'restricted') {
+                  Restricted projects won't appear on Explore Projects for most users—only managers, contributors, and assigned users can see them.
+                } @else {
+                  Company Wide projects are visible to everyone on the Explore page.
+                }
+              </small>
             </div>
           } @else {
             <div class="col-md-6 mb-3">
@@ -147,6 +154,13 @@
                 <option value="company_wide">Company Wide</option>
                 <option value="restricted">Restricted</option>
               </select>
+              <small class="form-text text-muted" [class.text-warning]="form.visibility === 'restricted'">
+                @if (form.visibility === 'restricted') {
+                  Restricted projects won't appear on Explore Projects for most users—only managers, contributors, and assigned users can see them.
+                } @else {
+                  Company Wide projects are visible to everyone on the Explore page.
+                }
+              </small>
             </div>
           }
         </div>

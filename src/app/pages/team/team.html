@@ -63,20 +63,6 @@
             <span class="badge bg-{{ getRoleBadgeClass(user.role) }}">{{ getRoleLabel(user.role) }}</span>
             <span class="badge bg-{{ getStatusBadgeClass(user.status) }}">{{ user.status }}</span>
           </div>
-          @if (api.isAdmin() && user.id !== api.user()?.id) {
-            <div class="member-card__actions">
-              <select
-                class="form-select form-select-sm"
-                [value]="user.role"
-                (change)="changeRole(user, $any($event.target).value)"
-              >
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="it_manager">IT Manager</option>
-                <option value="user">Employee</option>
-              </select>
-            </div>
-          }
         </div>
       }
     </div>

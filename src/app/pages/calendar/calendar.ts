@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Api } from '../../services/api';
 import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
+import { toLocalDateString } from '../../utils/date';
 import type { Task, Project } from '../../interfaces/database.types';
 
 export type ViewMode = 'month' | 'week' | 'agenda';
@@ -138,7 +139,7 @@ export class Calendar implements OnInit {
       for (let i = 0; i < 7; i++) {
         const d = new Date(startOfWeek);
         d.setDate(startOfWeek.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = toLocalDateString(d);
         const dayEvents = allEvents.filter((e) => e.date === dateStr);
         days.push({
           date: new Date(d),
@@ -160,7 +161,7 @@ export class Calendar implements OnInit {
       for (let i = 0; i < 21; i++) {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = toLocalDateString(d);
         const dayEvents = allEvents.filter((e) => e.date === dateStr);
         days.push({
           date: new Date(d),
@@ -185,7 +186,7 @@ export class Calendar implements OnInit {
     for (let i = 0; i < 42; i++) {
       const d = new Date(startDate);
       d.setDate(startDate.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = toLocalDateString(d);
       const dayEvents = allEvents.filter((e) => e.date === dateStr);
       days.push({
         date: new Date(d),
@@ -201,10 +202,10 @@ export class Calendar implements OnInit {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const events = this.allEvents();
-    const withDate = events.map((e) => ({
-      ...e,
-      dateObj: new Date(e.date + 'T12:00:00'),
-    }));
+    const withDate = events.map((e) => {
+      const [y, m, d] = e.date.split('-').map(Number);
+      return { ...e, dateObj: new Date(y, m - 1, d) };
+    });
     return withDate
       .filter((e) => e.dateObj >= today)
       .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())

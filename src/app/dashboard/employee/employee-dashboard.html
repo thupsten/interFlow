@@ -8,7 +8,7 @@
         <h1 class="dashboard-title">Welcome back!</h1>
         <p class="dashboard-subtitle">Here's what's happening with your work</p>
       </div>
-      <a routerLink="/projects" class="btn btn-primary">
+      <a routerLink="/projects" class="btn btn-primary explore-projects-btn">
         <i class="bi bi-compass me-1"></i> Explore Projects
       </a>
     </div>
@@ -192,7 +192,9 @@
             <div class="empty-state">
               <i class="bi bi-heart"></i>
               <span>No interest requests yet</span>
-              <a routerLink="/projects" class="btn btn-sm btn-primary mt-2">Explore Projects</a>
+              <a routerLink="/projects" class="btn btn-primary explore-projects-btn explore-projects-btn--sm mt-2">
+              <i class="bi bi-compass me-1"></i> Explore Projects
+            </a>
             </div>
           } @else {
             @for (interest of myInterests().slice(0, 5); track interest.id) {

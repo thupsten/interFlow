@@ -245,7 +245,6 @@ export class UserManagement implements OnInit {
     try {
       await this.userService.updateUser(user.id, {
         full_name: this.editForm.full_name,
-        role: this.editForm.role,
         department: this.editForm.department || null,
         status: this.editForm.status,
       });
@@ -253,7 +252,7 @@ export class UserManagement implements OnInit {
       this.users.update((list) =>
         list.map((u) =>
           u.id === user.id
-            ? { ...u, ...this.editForm, department: this.editForm.department || null }
+            ? { ...u, full_name: this.editForm.full_name, department: this.editForm.department || null, status: this.editForm.status }
             : u
         )
       );
@@ -288,6 +287,30 @@ export class UserManagement implements OnInit {
     } catch {
       this.snackbar.error('Failed to activate user');
     }
+  }
+
+  async deleteUser(user: Profile): Promise<void> {
+    if (!this.api.isAdmin()) return;
+    if (user.id === this.api.user()?.id) return;
+    if (!confirm(`Permanently delete ${user.full_name} (${user.email})? This cannot be undone.`)) return;
+
+    try {
+      const { data, error } = await this.api.supabase.functions.invoke('delete-user', {
+        body: { user_id: user.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      this.users.update((list) => list.filter((u) => u.id !== user.id));
+      this.snackbar.success('User deleted');
+    } catch (err) {
+      this.snackbar.error(err instanceof Error ? err.message : 'Failed to delete user');
+    }
+  }
+
+  getRoleLabel(role: string): string {
+    const map: Record<string, string> = { admin: 'Admin', manager: 'Manager', it_manager: 'IT Manager', user: 'Employee' };
+    return map[role] || role;
   }
 
   getRoleClass(role: string): string {

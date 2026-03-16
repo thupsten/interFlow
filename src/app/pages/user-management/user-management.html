@@ -135,13 +135,18 @@
                     <i class="bi bi-pencil"></i>
                   </button>
                   @if (user.status !== 'deactivated' && user.id !== api.user()?.id) {
-                    <button class="btn btn-sm btn-outline-danger" (click)="deactivateUser(user)" title="Deactivate">
+                    <button class="btn btn-sm btn-outline-warning" (click)="deactivateUser(user)" title="Deactivate">
                       <i class="bi bi-person-x"></i>
                     </button>
                   }
                   @if (user.status === 'deactivated') {
                     <button class="btn btn-sm btn-outline-success" (click)="activateUser(user)" title="Activate">
                       <i class="bi bi-person-check"></i>
+                    </button>
+                  }
+                  @if (api.isAdmin() && user.id !== api.user()?.id) {
+                    <button class="btn btn-sm btn-outline-danger" (click)="deleteUser(user)" title="Delete permanently">
+                      <i class="bi bi-trash"></i>
                     </button>
                   }
                 </div>
@@ -303,12 +308,14 @@
 
         <div class="mb-3">
           <label class="form-label">Role</label>
-          <select class="form-select" [(ngModel)]="editForm.role" name="editRole" [disabled]="saving()">
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="it_manager">IT Manager</option>
-            <option value="user">Employee</option>
-          </select>
+          <input
+            type="text"
+            class="form-control"
+            [value]="getRoleLabel(editForm.role)"
+            disabled
+            readonly
+          />
+          <small class="text-muted">Role is set at invite and cannot be changed</small>
         </div>
 
         <div class="mb-3">

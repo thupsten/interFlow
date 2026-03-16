@@ -60,7 +60,14 @@
     <div class="empty-state">
       <i class="bi bi-folder-x"></i>
       <h3>No projects found</h3>
-      <p>Try adjusting your filters or check back later</p>
+      @if (hasActiveFilters()) {
+        <p>No projects match your current filters</p>
+        <button class="btn btn-outline-primary btn-sm mt-2" (click)="resetFilters()">
+          <i class="bi bi-funnel me-1"></i> Clear filters
+        </button>
+      } @else {
+        <p>Restricted projects only appear for managers, contributors, and assigned users. If you expect to see a project, ask your manager to set it to "Company Wide" or add you to the team.</p>
+      }
     </div>
   } @else {
     <div class="project-grid">

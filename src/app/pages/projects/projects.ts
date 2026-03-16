@@ -60,6 +60,19 @@ export class Projects implements OnInit {
     return result;
   });
 
+  readonly hasActiveFilters = computed(
+    () =>
+      this.searchQuery().trim() !== '' ||
+      this.selectedStatus() !== 'all' ||
+      this.selectedPriority() !== 'all'
+  );
+
+  resetFilters(): void {
+    this.searchQuery.set('');
+    this.selectedStatus.set('all');
+    this.selectedPriority.set('all');
+  }
+
   async ngOnInit(): Promise<void> {
     try {
       const includeArchived = this.api.isAdmin();

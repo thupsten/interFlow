@@ -8,6 +8,7 @@ import { ProjectService } from '../../services/project.service';
 import { CommentService } from '../../services/comment.service';
 import { TimeTrackingService } from '../../services/time-tracking.service';
 import { SnackbarService } from '../../services/snackbar.service';
+import { toLocalDateString } from '../../utils/date';
 import type { Task, Project, TaskComment, TimeLog } from '../../interfaces/database.types';
 
 Chart.register(...registerables);
@@ -55,7 +56,7 @@ export class MyWork implements OnInit, AfterViewInit {
   get filteredTasks() {
     const filter = this.selectedFilter();
     const tasks = this.myTasks();
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateString(new Date());
 
     switch (filter) {
       case 'in_progress':
@@ -71,7 +72,7 @@ export class MyWork implements OnInit, AfterViewInit {
 
   get stats() {
     const tasks = this.myTasks();
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateString(new Date());
     return {
       total: tasks.length,
       inProgress: tasks.filter((t) => t.status === 'in_progress').length,
@@ -209,7 +210,7 @@ export class MyWork implements OnInit, AfterViewInit {
 
   isOverdue(task: Task): boolean {
     if (!task.expected_end_date || task.status === 'completed') return false;
-    return task.expected_end_date < new Date().toISOString().split('T')[0];
+    return task.expected_end_date < toLocalDateString(new Date());
   }
 
   getDaysRemaining(date: string | null): string {

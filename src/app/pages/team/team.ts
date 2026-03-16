@@ -134,17 +134,6 @@ export class Team implements OnInit {
     }
   }
 
-  async changeRole(user: Profile, newRole: UserRole): Promise<void> {
-    try {
-      await this.userService.updateUser(user.id, { role: newRole });
-      this.users.update((list) =>
-        list.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
-      );
-    } catch (err) {
-      this.snackbar.error('Failed to update role');
-    }
-  }
-
   getRoleLabel(role: string): string {
     const map: Record<string, string> = {
       admin: 'Admin',

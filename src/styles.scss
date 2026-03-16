@@ -206,6 +206,38 @@ input::placeholder {
 .text-success { color: var(--secondary) !important; }
 .bg-success { background-color: var(--secondary) !important; }
 
+/* Explore Projects button - consistent UI across all pages */
+.explore-projects-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb, 43, 49, 141), 0.2);
+  text-decoration: none;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(var(--primary-rgb, 43, 49, 141), 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &--sm {
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  &--empty {
+    padding: 0.625rem 1.5rem;
+    font-size: 1rem;
+    margin-top: 1rem;
+  }
+}
 
 .card{
   border-radius: 0 !important;
