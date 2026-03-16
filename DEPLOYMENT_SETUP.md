@@ -30,6 +30,8 @@ Your app: **https://inter-flow.vercel.app**
 | `RESEND_API_KEY` | Your Resend API key from [resend.com](https://resend.com) → API Keys |
 | `APP_URL` | `https://inter-flow.vercel.app` |
 
+**Note:** `APP_URL` is used by both `invite-user` and `send-notification-email` functions for correct links in emails.
+
 **CLI alternative** (if Supabase CLI is installed):
 ```bash
 supabase secrets set RESEND_API_KEY=your_resend_key_here
@@ -48,12 +50,16 @@ supabase secrets set APP_URL=https://inter-flow.vercel.app
 
 ---
 
-## 3. Supabase Auth – Site URL (for invite emails)
+## 3. Supabase Auth – Site URL (CRITICAL for invite emails)
+
+The invite email was showing `localhost` because Auth URL was misconfigured. Fix it:
 
 1. **Project Settings** → **Authentication** → **URL Configuration**
-2. Set:
-   - **Site URL:** `https://inter-flow.vercel.app`
-   - **Redirect URLs:** add `https://inter-flow.vercel.app/**`
+2. Set **Site URL** to: `https://inter-flow.vercel.app` (replace any localhost value)
+3. Under **Redirect URLs**, add:
+   - `https://inter-flow.vercel.app/**`
+   - `https://inter-flow.vercel.app/accept-invite`
+4. Remove `http://localhost:3000` and `http://localhost:4200` if you don't need local dev
 
 ---
 
@@ -75,13 +81,24 @@ Production `src/environments/environment.ts` has:
 
 ---
 
+## 6. Redeploy invite-user Function
+
+The `invite-user` function was updated to always use the production URL for invite links (never localhost). Redeploy it:
+
+1. **Edge Functions** → open `invite-user`
+2. The code now uses `APP_URL` when the client passes localhost
+3. Click **Deploy** (or paste the updated code from `supabase/functions/invite-user/index.ts`)
+
+---
+
 ## Checklist
 
+- [ ] Supabase Auth **Site URL** = `https://inter-flow.vercel.app` (fixes localhost in invite email)
+- [ ] Supabase Auth **Redirect URLs** include `https://inter-flow.vercel.app/**`
 - [ ] Edge Function `send-notification-email` deployed
+- [ ] Edge Function `invite-user` redeployed (with localhost fix)
 - [ ] Secrets `RESEND_API_KEY` and `APP_URL` set in Supabase
 - [ ] Database webhook for `notifications` INSERT created
-- [ ] Supabase Auth Site URL set to `https://inter-flow.vercel.app`
-- [ ] Redirect URLs include `https://inter-flow.vercel.app/**`
 
 ---
 

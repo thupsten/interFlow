@@ -70,7 +70,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const baseUrl = appUrl || req.headers.get("origin") || "http://localhost:4200";
+    // Always use production URL for invite links - never localhost
+    const productionUrl = Deno.env.get("APP_URL") || "https://inter-flow.vercel.app";
+    const passedUrl = appUrl || req.headers.get("origin") || "";
+    const isLocalhost = /localhost|127\.0\.0\.1/i.test(passedUrl);
+    const baseUrl = isLocalhost ? productionUrl : (passedUrl || productionUrl);
     const redirectTo = `${baseUrl.replace(/\/$/, "")}/accept-invite`;
 
     const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {

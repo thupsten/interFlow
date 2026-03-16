@@ -176,6 +176,7 @@ export class UserManagement implements OnInit {
     this.inviteError.set(null);
 
     try {
+      // Always use production URL for invite links (Edge Function will also enforce this)
       const appUrl = (environment as { appUrl?: string }).appUrl ?? window.location.origin;
       const { data, error } = await this.api.supabase.functions.invoke('invite-user', {
         body: {
