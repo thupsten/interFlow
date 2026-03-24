@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Api } from '../../services/api';
+import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-settings',
@@ -14,13 +15,13 @@ import { Api } from '../../services/api';
 export class Settings {
   readonly api = inject(Api);
   readonly router = inject(Router);
+  readonly snackbar = inject(SnackbarService);
   readonly saving = signal(false);
   readonly updatingPassword = signal(false);
   readonly passwordTouched = signal(false);
   readonly showCurrentPassword = signal(false);
   readonly showNewPassword = signal(false);
   readonly showConfirmPassword = signal(false);
-  readonly message = signal<{ type: 'success' | 'error'; text: string } | null>(null);
 
   settings = {
     emailNotifications: true,
@@ -37,13 +38,12 @@ export class Settings {
 
   async saveSettings(): Promise<void> {
     this.saving.set(true);
-    this.message.set(null);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      this.message.set({ type: 'success', text: 'Settings saved successfully!' });
+      this.snackbar.success('Settings saved successfully!');
     } catch {
-      this.message.set({ type: 'error', text: 'Failed to save settings' });
+      this.snackbar.error('Failed to save settings');
     } finally {
       this.saving.set(false);
     }
@@ -51,19 +51,18 @@ export class Settings {
 
   async updateMyPassword(): Promise<void> {
     this.passwordTouched.set(true);
-    this.message.set(null);
 
     const { currentPassword, newPassword, confirmPassword } = this.passwordForm;
     if (!currentPassword || !newPassword || !confirmPassword) {
-      this.message.set({ type: 'error', text: 'Please fill all password fields.' });
+      this.snackbar.error('Please fill all password fields.');
       return;
     }
     if (newPassword.length < 8) {
-      this.message.set({ type: 'error', text: 'Password must be at least 8 characters.' });
+      this.snackbar.error('Password must be at least 8 characters.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      this.message.set({ type: 'error', text: 'New password and confirm password do not match.' });
+      this.snackbar.error('New password and confirm password do not match.');
       return;
     }
 
@@ -85,14 +84,14 @@ export class Settings {
       if (error) throw error;
       this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
       this.passwordTouched.set(false);
-      this.message.set({ type: 'success', text: 'Password changed successfully. Logging out...' });
+      this.snackbar.success('Password changed successfully. Logging out...');
       setTimeout(async () => {
         await this.api.signOut();
         await this.router.navigate(['/login']);
       }, 1200);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update password';
-      this.message.set({ type: 'error', text: msg });
+      this.snackbar.error(msg);
     } finally {
       this.updatingPassword.set(false);
     }

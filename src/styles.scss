@@ -8,6 +8,16 @@
   --mat-snack-bar-button-color: #fff;
 }
 
+.snackbar-success .mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: #16a34a;
+  --mat-snack-bar-button-color: #fff;
+}
+
+.snackbar-info .mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: #2563eb;
+  --mat-snack-bar-button-color: #fff;
+}
+
 :root {
   --primary: #2B318D;
   --primary-light: #3d45a8;

@@ -4,12 +4,6 @@
     <p class="page__subtitle">Manage your application preferences</p>
   </div>
 
-  @if (message(); as msg) {
-    <div class="alert" [class.alert-success]="msg.type === 'success'" [class.alert-danger]="msg.type === 'error'">
-      {{ msg.text }}
-    </div>
-  }
-
   <div class="settings-section">
     <h2 class="settings-section__title">
       <i class="bi bi-bell me-2"></i> Notifications
@@ -167,7 +161,7 @@
             <button
               type="submit"
               class="btn btn-primary"
-              [disabled]="updatingPassword() || !!getPasswordValidationError()"
+              [disabled]="updatingPassword()"
             >
               @if (updatingPassword()) {
                 <span class="spinner-border spinner-border-sm me-2"></span>
@@ -175,9 +169,6 @@
               Update Password
             </button>
           </span>
-          @if (shouldShowPasswordValidationError()) {
-            <small class="text-danger">{{ getPasswordValidationError() }}</small>
-          }
         </form>
       </div>
     </div>
