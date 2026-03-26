@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Api } from '../../services/api';
@@ -27,7 +27,26 @@ export class TaskForm implements OnInit {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly project = signal<Project | null>(null);
-  readonly contributors = signal<Profile[]>([]);
+
+  /** Managers, admins, and project leads can assign anyone on the team. Contributors assign only themselves (enforced on save + RLS). */
+  readonly canAssignOthers = computed(() => {
+    if (this.api.isAdmin()) return true;
+    if (this.api.isManager()) return true;
+    const p = this.project();
+    const uid = this.api.user()?.id;
+    if (!p || !uid) return false;
+    if (p.created_by === uid) return true;
+    return !!p.managers?.some((m) => m.id === uid);
+  });
+
+  readonly assignableTeam = computed(() => {
+    const p = this.project();
+    if (!p) return [];
+    const map = new Map<string, Profile>();
+    (p.managers ?? []).forEach((m) => map.set(m.id, m));
+    (p.contributors ?? []).forEach((c) => map.set(c.id, c));
+    return Array.from(map.values());
+  });
 
   form = {
     title: '',
@@ -52,10 +71,30 @@ export class TaskForm implements OnInit {
         return;
       }
       this.project.set(project);
-      this.contributors.set(project.contributors || []);
+
+      if (!this.userMayCreateTaskOnProject(project)) {
+        this.snackbar.error('You can only create tasks on projects you manage or contribute to.');
+        this.router.navigate(['/projects', projectId]);
+        return;
+      }
+
+      const uid = this.api.user()?.id;
+      if (uid && !this.canAssignOthers()) {
+        this.form.assignees = [uid];
+      }
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private userMayCreateTaskOnProject(project: Project): boolean {
+    const uid = this.api.user()?.id;
+    if (!uid) return false;
+    if (this.api.isAdmin()) return true;
+    if (this.api.isManager()) return true;
+    if (project.created_by === uid) return true;
+    if (project.managers?.some((m) => m.id === uid)) return true;
+    return !!project.contributors?.some((c) => c.id === uid);
   }
 
   toggleAssignee(userId: string): void {
@@ -81,6 +120,12 @@ export class TaskForm implements OnInit {
 
     this.saving.set(true);
     try {
+      const uid = this.api.user()?.id;
+      let assigneeIds = [...this.form.assignees];
+      if (uid && !this.canAssignOthers()) {
+        assigneeIds = [uid];
+      }
+
       const task = await this.taskService.createTask({
         project_id: project.id,
         title: this.form.title.trim(),
@@ -91,19 +136,21 @@ export class TaskForm implements OnInit {
         status: 'not_started',
       });
 
-      if (this.form.assignees.length > 0) {
-        await this.taskService.assignTask(task.id, this.form.assignees);
-        
-        // Notify assigned employees
-        const currentUserName = this.api.profile()?.full_name || 'A manager';
-        await this.notificationService.notifyUsers(
-          this.form.assignees,
-          'task',
-          `New task assigned: ${this.form.title}`,
-          `${currentUserName} assigned you to "${this.form.title}" in project "${project.title}"`,
-          `/projects/${project.id}`,
-          { projectId: project.id, taskId: task.id },
-        );
+      if (assigneeIds.length > 0) {
+        await this.taskService.assignTask(task.id, assigneeIds);
+
+        const notifyIds = uid ? assigneeIds.filter((id) => id !== uid) : assigneeIds;
+        if (notifyIds.length > 0) {
+          const currentUserName = this.api.profile()?.full_name || 'A teammate';
+          await this.notificationService.notifyUsers(
+            notifyIds,
+            'task',
+            `New task assigned: ${this.form.title}`,
+            `${currentUserName} assigned you to "${this.form.title}" in project "${project.title}"`,
+            `/projects/${project.id}`,
+            { projectId: project.id, taskId: task.id },
+          );
+        }
       }
 
       this.router.navigate(['/projects', project.id]);

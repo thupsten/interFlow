@@ -92,7 +92,6 @@ export const routes: Routes = [
       {
         path: 'projects/:projectId/tasks/new',
         loadComponent: () => import('./pages/task-form/task-form').then((m) => m.TaskForm),
-        canActivate: [adminOrManagerGuard],
       },
 
 

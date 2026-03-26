@@ -30,24 +30,72 @@ export class TaskService {
     return this.mapTasks(data || []);
   }
 
+  /**
+   * Tasks shown on My Task Board / My Work: all tasks on projects you contribute to (team-visible),
+   * merged with tasks where you are an assignee only.
+   */
   async getMyTasks(): Promise<Task[]> {
     const userId = this.api.user()?.id;
     if (!userId) return [];
 
-    const { data, error } = await this.api.supabase
-      .from('task_assignees')
-      .select(`
-        task:tasks(
-          *,
-          project:projects(*),
-          assignees:task_assignees(user:profiles(*)),
-          creator:profiles!tasks_created_by_fkey(*)
-        )
-      `)
-      .eq('user_id', userId);
+    const taskJoin = `
+      *,
+      project:projects(*),
+      assignees:task_assignees(user:profiles(*)),
+      creator:profiles!tasks_created_by_fkey(*)
+    `;
 
-    if (error) throw error;
-    return this.mapTasks(data?.map((d) => d.task).filter(Boolean) || []);
+    const [contribRows, assigneeRows] = await Promise.all([
+      this.api.supabase.from('project_contributors').select('project_id').eq('user_id', userId),
+      this.api.supabase
+        .from('task_assignees')
+        .select(
+          `
+        task:tasks(
+          ${taskJoin}
+        )
+      `,
+        )
+        .eq('user_id', userId),
+    ]);
+
+    if (contribRows.error) throw contribRows.error;
+    if (assigneeRows.error) throw assigneeRows.error;
+
+    const projectIds = [...new Set((contribRows.data ?? []).map((r) => r.project_id as string))];
+
+    let fromProjects: Task[] = [];
+    if (projectIds.length > 0) {
+      const { data, error } = await this.api.supabase
+        .from('tasks')
+        .select(taskJoin)
+        .in('project_id', projectIds)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      fromProjects = this.mapTasks(data || []);
+    }
+
+    const fromAssignees = this.mapTasks(
+      (assigneeRows.data ?? [])
+        .map((d: { task: Task | Task[] | null }) => {
+          const t = d.task;
+          return Array.isArray(t) ? t[0] ?? null : t;
+        })
+        .filter((t): t is Task => t != null),
+    );
+
+    return this.mergeTasksById(fromProjects, fromAssignees);
+  }
+
+  private mergeTasksById(a: Task[], b: Task[]): Task[] {
+    const map = new Map<string, Task>();
+    for (const t of a) map.set(t.id, t);
+    for (const t of b) map.set(t.id, t);
+    return Array.from(map.values()).sort(
+      (x, y) => new Date(y.created_at).getTime() - new Date(x.created_at).getTime(),
+    );
   }
 
   async getOverdueTasks(): Promise<Task[]> {
@@ -114,7 +162,7 @@ export class TaskService {
     if (!userId) throw new Error('Not authenticated');
 
     const updates: any = { status };
-    
+
     if (status === 'completed') {
       updates.completed_by = userId;
       updates.completed_at = new Date().toISOString();

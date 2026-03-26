@@ -31,6 +31,8 @@
             <button class="btn btn-outline-primary" (click)="editProject()">
               <i class="bi bi-pencil me-1"></i> Edit
             </button>
+          }
+          @if (canCreateTask()) {
             <a [routerLink]="['/projects', project()!.id, 'tasks', 'new']" class="btn btn-primary">
               <i class="bi bi-plus-lg me-1"></i> Add Task
             </a>
@@ -287,11 +289,11 @@
             <div class="empty-box">
               <i class="bi bi-list-check"></i>
               <h4>No tasks yet</h4>
-              <p>Tasks will appear here once created</p>
-              @if (canManage()) {
-                <button class="btn btn-primary mt-2">
-                  <i class="bi bi-plus-lg me-1"></i> Create First Task
-                </button>
+              <p>Tasks will appear here once created. Contributors can add their own tasks; the whole team on this project can see them.</p>
+              @if (canCreateTask()) {
+                <a [routerLink]="['/projects', project()!.id, 'tasks', 'new']" class="btn btn-primary mt-2">
+                  <i class="bi bi-plus-lg me-1"></i> Create first task
+                </a>
               }
             </div>
           } @else {
@@ -446,7 +448,7 @@
           <h3 class="card__title">
             <i class="bi bi-chat-dots me-2"></i> Discussion
           </h3>
-          
+
           @if (canComment()) {
             <div class="comment-form">
               <div class="mention-container">
@@ -537,7 +539,7 @@
               <span class="badge bg-warning ms-2">{{ pendingInterests().length }} pending</span>
             }
           </h3>
-          
+
           @if (displayInterests().length === 0) {
             <div class="empty-box">
               <i class="bi bi-inbox"></i>
@@ -596,7 +598,7 @@
             <span class="badge bg-primary ms-2">{{ timeLogs().length }} entries</span>
           </h3>
           <p class="card__subtitle mb-3">Time logged by employees on project tasks</p>
-          
+
           @if (timeLogs().length === 0) {
             <div class="empty-box">
               <i class="bi bi-clock-history"></i>

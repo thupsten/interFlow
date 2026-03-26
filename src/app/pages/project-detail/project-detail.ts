@@ -58,6 +58,9 @@ export class ProjectDetail implements OnInit {
     return project.contributors?.some((c: Profile) => c.id === userId);
   });
 
+  /** Approved contributors and managers can add tasks on the project. */
+  readonly canCreateTask = computed(() => this.canManage() || this.isContributor());
+
   readonly taskStats = computed(() => {
     const allTasks = this.tasks();
     return {

@@ -37,12 +37,15 @@
       <div class="empty-board-message">
         @if (myProjects().length > 0) {
           <i class="bi bi-folder-check"></i>
-          <h3>No tasks assigned yet</h3>
-          <p>You're a contributor on {{ myProjects().length }} project(s). Ask your manager to assign tasks to you.</p>
+          <h3>No tasks on your projects yet</h3>
+          <p>
+            You are on {{ myProjects().length }} project(s). Open a project and use
+            <strong>Add task</strong> to create work for yourself, or collaborate on tasks your team adds—everyone on the project sees the same task list.
+          </p>
         } @else {
           <i class="bi bi-inbox"></i>
           <h3>No projects or tasks yet</h3>
-          <p>Show interest in projects to get approved, then your manager will assign tasks.</p>
+          <p>Show interest in a project and get approved by a manager, then you can add tasks and see the team’s tasks.</p>
         }
         <a routerLink="/projects" class="btn btn-primary mt-2">
           <i class="bi bi-compass me-1"></i> Explore Projects
