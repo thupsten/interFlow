@@ -25,35 +25,35 @@
     <div class="stat-card" [class.active]="selectedStatus() === 'all'" (click)="selectedStatus.set('all')">
       <span class="stat-card__icon"><i class="bi bi-list-ul"></i></span>
       <div class="stat-card__info">
-        <span class="stat-card__value">{{ tickets().length }}</span>
+        <span class="stat-card__value">{{ ticketsVisibleToUser().length }}</span>
         <span class="stat-card__label">All</span>
       </div>
     </div>
     <div class="stat-card" [class.active]="selectedStatus() === 'open'" (click)="selectedStatus.set('open')">
       <span class="stat-card__icon stat-card__icon--open"><i class="bi bi-inbox"></i></span>
       <div class="stat-card__info">
-        <span class="stat-card__value">{{ tickets().filter(t => t.status === 'open').length }}</span>
+        <span class="stat-card__value">{{ ticketsVisibleToUser().filter(t => t.status === 'open').length }}</span>
         <span class="stat-card__label">Open</span>
       </div>
     </div>
     <div class="stat-card" [class.active]="selectedStatus() === 'in_progress'" (click)="selectedStatus.set('in_progress')">
       <span class="stat-card__icon stat-card__icon--progress"><i class="bi bi-gear"></i></span>
       <div class="stat-card__info">
-        <span class="stat-card__value">{{ tickets().filter(t => t.status === 'in_progress').length }}</span>
+        <span class="stat-card__value">{{ ticketsVisibleToUser().filter(t => t.status === 'in_progress').length }}</span>
         <span class="stat-card__label">In Progress</span>
       </div>
     </div>
     <div class="stat-card" [class.active]="selectedStatus() === 'resolved'" (click)="selectedStatus.set('resolved')">
       <span class="stat-card__icon stat-card__icon--resolved"><i class="bi bi-check-circle"></i></span>
       <div class="stat-card__info">
-        <span class="stat-card__value">{{ tickets().filter(t => t.status === 'resolved').length }}</span>
+        <span class="stat-card__value">{{ ticketsVisibleToUser().filter(t => t.status === 'resolved').length }}</span>
         <span class="stat-card__label">Resolved</span>
       </div>
     </div>
     <div class="stat-card" [class.active]="selectedStatus() === 'closed'" (click)="selectedStatus.set('closed')">
       <span class="stat-card__icon stat-card__icon--closed"><i class="bi bi-archive"></i></span>
       <div class="stat-card__info">
-        <span class="stat-card__value">{{ tickets().filter(t => t.status === 'closed').length }}</span>
+        <span class="stat-card__value">{{ ticketsVisibleToUser().filter(t => t.status === 'closed').length }}</span>
         <span class="stat-card__label">Closed</span>
       </div>
     </div>

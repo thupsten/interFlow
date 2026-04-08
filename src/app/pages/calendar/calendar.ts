@@ -221,7 +221,7 @@ export class Calendar implements OnInit {
     this.loading.set(true);
     try {
       const role = this.api.userRole();
-      if (role === 'admin') {
+      if (this.api.hasProjectOversight()) {
         const [tasks, projects] = await Promise.all([
           this.taskService.getTasks(),
           this.projectService.getProjects(),

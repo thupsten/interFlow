@@ -51,7 +51,7 @@
           />
         </div>
       </div>
-      @if (api.isAdmin() || api.isManager()) {
+      @if (api.isAdmin() || api.isCsm() || api.isManager()) {
         <div class="setting-item">
           <div class="setting-item__info">
             <strong>Interest Alerts</strong>

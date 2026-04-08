@@ -26,11 +26,20 @@ export class Api {
   readonly profile = signal<Profile | null>(null);
   readonly user = computed(() => this.session()?.user ?? null);
   readonly userRole = computed<UserRole | null>(() => this.profile()?.role ?? null);
+  /** Platform administrator only (not CSM). */
   readonly isAdmin = computed(() => this.userRole() === 'admin');
+  readonly isCsm = computed(() => this.userRole() === 'csm');
   readonly isManager = computed(() => this.userRole() === 'manager');
+  /**
+   * Admin or CSM: see all projects (archived, restricted titles), org-wide manager dashboard stats.
+   * Does not grant user management, IT admin queue, or finance admin inbox.
+   */
+  readonly hasProjectOversight = computed(() => this.isAdmin() || this.isCsm());
   readonly isUser = computed(() => this.userRole() === 'user');
   readonly isItManager = computed(() => this.userRole() === 'it_manager');
   readonly isFinance = computed(() => this.userRole() === 'finance');
+  /** Create new project records (admin or manager only; CSM uses existing projects). */
+  readonly canCreateProject = computed(() => this.isAdmin() || this.isManager());
   readonly initialized = signal(false);
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);

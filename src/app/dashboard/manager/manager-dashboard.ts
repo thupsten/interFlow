@@ -61,7 +61,7 @@ export class ManagerDashboard implements OnInit {
 
     let projectIds: string[] = [];
 
-    if (this.api.isAdmin()) {
+    if (this.api.hasProjectOversight()) {
       const { data: allProjects } = await this.api.supabase
         .from('projects')
         .select('id')
@@ -166,7 +166,7 @@ export class ManagerDashboard implements OnInit {
     this.timeLogPeriod.set(period);
     let projectIds: string[] = [];
     const userId = this.api.user()?.id;
-    if (this.api.isAdmin()) {
+    if (this.api.hasProjectOversight()) {
       const { data } = await this.api.supabase.from('projects').select('id').is('deleted_at', null);
       projectIds = data?.map((p) => p.id) || [];
     } else if (userId) {

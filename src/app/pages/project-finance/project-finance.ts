@@ -138,7 +138,7 @@ export class ProjectFinance implements OnInit, OnDestroy {
     try {
       const role = this.api.userRole();
       const list =
-        role === 'admin' || role === 'finance'
+        this.api.hasProjectOversight() || role === 'finance'
           ? await this.projectService.getProjects()
           : await this.projectService.getManagerProjects();
       this.projects.set(list);

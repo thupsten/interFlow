@@ -39,7 +39,7 @@ export class Projects implements OnInit {
   readonly interestMessage = signal('');
   readonly submittingInterest = signal(false);
 
-  readonly canCreate = computed(() => this.api.isAdmin() || this.api.isManager());
+  readonly canCreate = computed(() => this.api.canCreateProject());
   readonly isUser = computed(() => this.api.isUser());
 
   readonly filteredProjects = computed(() => {
@@ -87,7 +87,7 @@ export class Projects implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const includeArchived = this.api.isAdmin();
+      const includeArchived = this.api.hasProjectOversight();
       const [projects, tags, myProjects] = await Promise.all([
         this.projectService.getProjects(includeArchived),
         this.projectService.getTags(),

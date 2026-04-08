@@ -12,9 +12,11 @@
         <a routerLink="/team" class="btn btn-outline-primary me-2">
           <i class="bi bi-people me-1"></i> Manage Users
         </a>
-        <a routerLink="/projects/new" class="btn btn-primary">
-          <i class="bi bi-plus-lg me-1"></i> Create Project
-        </a>
+        @if (api.canCreateProject()) {
+          <a routerLink="/projects/new" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Create Project
+          </a>
+        }
       </div>
     </div>
 

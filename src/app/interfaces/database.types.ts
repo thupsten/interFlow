@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type UserRole = 'admin' | 'manager' | 'user' | 'it_manager' | 'finance';
+export type UserRole = 'admin' | 'csm' | 'manager' | 'user' | 'it_manager' | 'finance';
 export type UserStatus = 'invited' | 'active' | 'deactivated';
 export type Priority = 'high' | 'medium' | 'low';
 export type ProjectStatus = 'not_started' | 'in_progress' | 'completed' | 'delayed' | 'on_hold';
@@ -171,6 +171,24 @@ export interface ProjectComment extends Comment {
 
 export interface TaskComment extends Comment {
   task_id: string;
+}
+
+export interface ProjectCsmDraftComment extends Comment {
+  draft_id: string;
+}
+
+/** CSM-only planning drafts on a project (not visible to other roles in UI). */
+export interface ProjectCsmDraft {
+  id: string;
+  project_id: string;
+  title: string;
+  notes: string | null;
+  sort_order: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  creator?: Profile;
+  comments?: ProjectCsmDraftComment[];
 }
 
 export interface Attachment {

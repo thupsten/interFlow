@@ -398,6 +398,7 @@ export class UserManagement implements OnInit {
   getRoleLabel(role: string): string {
     const map: Record<string, string> = {
       admin: 'Admin',
+      csm: 'CSM',
       manager: 'Manager',
       it_manager: 'IT Manager',
       finance: 'Finance Manager',
@@ -409,6 +410,7 @@ export class UserManagement implements OnInit {
   getRoleClass(role: string): string {
     const map: Record<string, string> = {
       admin: 'danger',
+      csm: 'danger',
       manager: 'primary',
       it_manager: 'info',
       finance: 'success',

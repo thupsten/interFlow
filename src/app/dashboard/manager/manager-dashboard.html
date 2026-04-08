@@ -5,16 +5,20 @@
     <!-- Header -->
     <div class="dashboard-header">
       <div>
-        <h1 class="dashboard-title">Manager Dashboard</h1>
-        <p class="dashboard-subtitle">Manage your projects and team</p>
+        <h1 class="dashboard-title">{{ api.isCsm() ? 'CSM Dashboard' : 'Manager Dashboard' }}</h1>
+        <p class="dashboard-subtitle">
+          {{ api.isCsm() ? 'Customer success overview across all projects' : 'Manage your projects and team' }}
+        </p>
       </div>
       <div class="dashboard-actions">
         <a routerLink="/tasks" class="btn btn-outline-primary me-2">
           <i class="bi bi-list-task me-1"></i> All Tasks
         </a>
-        <a routerLink="/projects/new" class="btn btn-primary">
-          <i class="bi bi-plus-lg me-1"></i> Create Project
-        </a>
+        @if (api.canCreateProject()) {
+          <a routerLink="/projects/new" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Create Project
+          </a>
+        }
       </div>
     </div>
 
@@ -29,15 +33,17 @@
         </div>
         <i class="bi bi-chevron-right stat-card__arrow"></i>
       </a>
-      <a routerLink="/interests" class="stat-card stat-card--interests">
-        <div class="stat-card__icon"><i class="bi bi-hand-index-fill"></i></div>
-        <div class="stat-card__data">
-          <span class="stat-card__value">{{ stats().pendingInterests }}</span>
-          <span class="stat-card__label">Interest Requests</span>
-          <span class="stat-card__sub">awaiting review</span>
-        </div>
-        <i class="bi bi-chevron-right stat-card__arrow"></i>
-      </a>
+      @if (!api.isCsm()) {
+        <a routerLink="/interests" class="stat-card stat-card--interests">
+          <div class="stat-card__icon"><i class="bi bi-hand-index-fill"></i></div>
+          <div class="stat-card__data">
+            <span class="stat-card__value">{{ stats().pendingInterests }}</span>
+            <span class="stat-card__label">Interest Requests</span>
+            <span class="stat-card__sub">awaiting review</span>
+          </div>
+          <i class="bi bi-chevron-right stat-card__arrow"></i>
+        </a>
+      }
       <a routerLink="/tasks" class="stat-card stat-card--reviews">
         <div class="stat-card__icon"><i class="bi bi-clipboard-check"></i></div>
         <div class="stat-card__data">
@@ -88,41 +94,43 @@
         </div>
       </div>
 
-      <!-- Pending Interest Requests -->
-      <div class="dashboard-card">
-        <div class="card-header">
-          <h3><i class="bi bi-hand-index me-2"></i>Interest Requests</h3>
-          <a routerLink="/interests" class="card-link">View All</a>
-        </div>
-        <div class="card-body">
-          @if (pendingInterests().length === 0) {
-            <div class="empty-state">
-              <i class="bi bi-inbox"></i>
-              <span>No pending requests</span>
-            </div>
-          } @else {
-            @for (interest of pendingInterests().slice(0, 5); track interest.id) {
-              <div class="interest-row">
-                <div class="interest-row__user">
-                  <span class="avatar-sm">{{ getInitials(interest.user?.full_name || '') }}</span>
-                  <div class="interest-row__info">
-                    <strong>{{ interest.user?.full_name }}</strong>
-                    <span>{{ interest.project?.title }}</span>
+      @if (!api.isCsm()) {
+        <!-- Pending Interest Requests -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h3><i class="bi bi-hand-index me-2"></i>Interest Requests</h3>
+            <a routerLink="/interests" class="card-link">View All</a>
+          </div>
+          <div class="card-body">
+            @if (pendingInterests().length === 0) {
+              <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <span>No pending requests</span>
+              </div>
+            } @else {
+              @for (interest of pendingInterests().slice(0, 5); track interest.id) {
+                <div class="interest-row">
+                  <div class="interest-row__user">
+                    <span class="avatar-sm">{{ getInitials(interest.user?.full_name || '') }}</span>
+                    <div class="interest-row__info">
+                      <strong>{{ interest.user?.full_name }}</strong>
+                      <span>{{ interest.project?.title }}</span>
+                    </div>
+                  </div>
+                  <div class="interest-row__actions">
+                    <button class="btn btn-sm btn-success" (click)="approveInterest(interest.id)" title="Approve">
+                      <i class="bi bi-check-lg"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="rejectInterest(interest.id)" title="Reject">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
                   </div>
                 </div>
-                <div class="interest-row__actions">
-                  <button class="btn btn-sm btn-success" (click)="approveInterest(interest.id)" title="Approve">
-                    <i class="bi bi-check-lg"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" (click)="rejectInterest(interest.id)" title="Reject">
-                    <i class="bi bi-x-lg"></i>
-                  </button>
-                </div>
-              </div>
+              }
             }
-          }
+          </div>
         </div>
-      </div>
+      }
 
       <!-- Tasks Pending Review -->
       <div class="dashboard-card dashboard-card--highlight">
@@ -188,6 +196,7 @@
         </div>
       </div>
 
+      @if (!api.isCsm()) {
       <!-- Team Time Logs -->
       <div class="dashboard-card dashboard-card--full">
         <div class="card-header">
@@ -261,7 +270,9 @@
           }
         </div>
       </div>
+      }
 
+      @if (!api.isCsm()) {
       <!-- Team Members -->
       <div class="dashboard-card dashboard-card--full">
         <div class="card-header">
@@ -289,6 +300,7 @@
           }
         </div>
       </div>
+      }
     </div>
   }
 </div>

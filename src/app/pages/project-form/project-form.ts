@@ -6,6 +6,7 @@ import { Api } from '../../services/api';
 import { ProjectService } from '../../services/project.service';
 import { UserService } from '../../services/user.service';
 import { NotificationService } from '../../services/notification.service';
+import { SnackbarService } from '../../services/snackbar.service';
 import type { Tag, Profile, Project } from '../../interfaces/database.types';
 
 interface ReferenceLink {
@@ -27,6 +28,7 @@ export class ProjectForm implements OnInit {
   readonly projectService = inject(ProjectService);
   readonly userService = inject(UserService);
   readonly notificationService = inject(NotificationService);
+  readonly snackbar = inject(SnackbarService);
   readonly router = inject(Router);
 
   readonly loading = signal(true);
@@ -115,6 +117,18 @@ export class ProjectForm implements OnInit {
     this.form.invitedEmployees = project.contributors?.map((c) => c.id) || [];
 
     this.references = this.extractReferences(project.description);
+
+    if (this.api.isCsm()) {
+      const uid = this.api.user()?.id;
+      const canEdit =
+        !!uid &&
+        (project.created_by === uid ||
+          (project.managers ?? []).some((m) => m.id === uid));
+      if (!canEdit) {
+        this.snackbar.error('You can only edit projects you create or manage.');
+        void this.router.navigate(['/projects', id]);
+      }
+    }
   }
 
   private extractDescription(desc: string | null): string {

@@ -63,6 +63,7 @@ export class UserService {
     const stats = {
       total: 0,
       admins: 0,
+      csms: 0,
       managers: 0,
       users: 0,
       active: 0,
@@ -76,6 +77,7 @@ export class UserService {
       }
       stats.total++;
       if (p.role === 'admin') stats.admins++;
+      if (p.role === 'csm') stats.csms++;
       if (p.role === 'manager') stats.managers++;
       if (p.role === 'user') stats.users++;
       if (p.status === 'active') stats.active++;

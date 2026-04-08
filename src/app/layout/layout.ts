@@ -8,7 +8,7 @@ interface NavItem {
   label: string;
   icon: string;
   route: string;
-  roles?: ('admin' | 'manager' | 'user' | 'it_manager' | 'finance')[];
+  roles?: ('admin' | 'csm' | 'manager' | 'user' | 'it_manager' | 'finance')[];
 }
 
 @Component({
@@ -40,8 +40,8 @@ export class Layout {
     { label: 'My Interests', icon: 'bi-heart', route: '/my-interests', roles: ['user'] },
     
     // Admin & Manager
-    { label: 'Projects', icon: 'bi-folder', route: '/projects', roles: ['admin', 'manager'] },
-    { label: 'Tasks', icon: 'bi-list-task', route: '/tasks', roles: ['admin', 'manager'] },
+    { label: 'Projects', icon: 'bi-folder', route: '/projects', roles: ['admin', 'csm', 'manager'] },
+    { label: 'Tasks', icon: 'bi-list-task', route: '/tasks', roles: ['admin', 'csm', 'manager'] },
     { label: 'Interest Requests', icon: 'bi-hand-index', route: '/interests', roles: ['admin', 'manager'] },
     { label: 'Team', icon: 'bi-people', route: '/team', roles: ['admin', 'manager'] },
     { label: 'Time Logs', icon: 'bi-clock-history', route: '/time-logs', roles: ['admin', 'manager'] },
@@ -52,16 +52,16 @@ export class Layout {
       roles: ['admin', 'manager'],
     },
 
-    // Admin only
+    // Platform admin only
     { label: 'User Management', icon: 'bi-person-gear', route: '/users', roles: ['admin'] },
     { label: 'Activity Log', icon: 'bi-activity', route: '/activity', roles: ['admin'] },
 
-    // IT Support — not shown to finance (minimal nav for finance role)
+    // IT Support — CSM sees only their own tickets (not the admin read-only queue)
     {
       label: 'IT Support',
       icon: 'bi-ticket-perforated',
       route: '/it-support',
-      roles: ['admin', 'manager', 'user', 'it_manager'],
+      roles: ['admin', 'csm', 'manager', 'user', 'it_manager'],
     },
     
     // Common - Calendar & Settings

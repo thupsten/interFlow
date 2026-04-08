@@ -20,7 +20,7 @@
       >
         My Tasks
       </button>
-      @if (api.isAdmin() || api.isManager()) {
+      @if (api.hasProjectOversight() || api.isManager()) {
         <button
           class="btn"
           [class.btn-primary]="viewMode() === 'all'"

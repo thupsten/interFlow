@@ -38,9 +38,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const { data: profile } = await userClient.from("profiles").select("role").eq("id", user.id).single();
-    if (!profile || profile.role !== "admin") {
+    if (profile?.role !== "admin") {
       return new Response(
-        JSON.stringify({ error: "Only admins can invite users" }),
+        JSON.stringify({ error: "Only platform admins can invite users" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -51,9 +51,17 @@ Deno.serve(async (req: Request) => {
 
     const { email, full_name, role, department, appUrl } = await req.json();
 
+    const allowedRoles = ["admin", "csm", "manager", "it_manager", "finance", "user"] as const;
     if (!email || !role) {
       return new Response(
         JSON.stringify({ error: "Email and role are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!(allowedRoles as readonly string[]).includes(String(role))) {
+      return new Response(
+        JSON.stringify({ error: "Invalid role" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

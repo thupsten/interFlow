@@ -33,9 +33,19 @@ export class ItSupport implements OnInit {
   readonly canDelete = computed(() => this.api.isItManager());
   readonly isAdminView = computed(() => this.api.isAdmin() && !this.api.isItManager());
 
+  /** CSM is not in admin IT queue; show only tickets they raised (same UX as employees). */
+  readonly ticketsVisibleToUser = computed(() => {
+    const list = this.tickets();
+    if (this.isAdminView() || this.canUpdateStatus()) return list;
+    if (!this.api.isCsm()) return list;
+    const uid = this.api.user()?.id;
+    if (!uid) return [];
+    return list.filter((t) => t.raised_by === uid);
+  });
+
   readonly filteredTickets = computed(() => {
     const status = this.selectedStatus();
-    const list = this.tickets();
+    const list = this.ticketsVisibleToUser();
     if (status === 'all') return list;
     return list.filter((t) => t.status === status);
   });

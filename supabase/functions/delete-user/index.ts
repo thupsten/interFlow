@@ -38,9 +38,10 @@ Deno.serve(async (req: Request) => {
     }
 
     const { data: callerProfile } = await userClient.from("profiles").select("role").eq("id", user.id).single();
-    if (!callerProfile || callerProfile.role !== "admin") {
+    const canDelete = callerProfile?.role === "admin" || callerProfile?.role === "csm";
+    if (!canDelete) {
       return new Response(
-        JSON.stringify({ error: "Only admins can delete users" }),
+        JSON.stringify({ error: "Only admins or CSM can delete users" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -68,6 +69,8 @@ Deno.serve(async (req: Request) => {
     await supabaseAdmin.from("task_assignees").delete().eq("user_id", targetUserId);
     await supabaseAdmin.from("time_logs").delete().eq("user_id", targetUserId);
     await supabaseAdmin.from("notifications").delete().eq("user_id", targetUserId);
+    await supabaseAdmin.from("project_csm_draft_comments").delete().eq("user_id", targetUserId);
+    await supabaseAdmin.from("project_csm_drafts").delete().eq("created_by", targetUserId);
     await supabaseAdmin.from("project_comments").delete().eq("user_id", targetUserId);
     await supabaseAdmin.from("task_comments").delete().eq("user_id", targetUserId);
     await supabaseAdmin.from("interest_requests").delete().eq("user_id", targetUserId);

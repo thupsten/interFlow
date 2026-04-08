@@ -40,9 +40,10 @@ Deno.serve(async (req: Request) => {
     }
 
     const { data: callerProfile } = await userClient.from("profiles").select("role").eq("id", user.id).single();
-    if (!callerProfile || callerProfile.role !== "admin") {
+    const canReset = callerProfile?.role === "admin" || callerProfile?.role === "csm";
+    if (!canReset) {
       return new Response(
-        JSON.stringify({ error: "Only admins can reset passwords" }),
+        JSON.stringify({ error: "Only admins or CSM can reset passwords" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

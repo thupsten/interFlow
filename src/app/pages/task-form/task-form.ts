@@ -30,7 +30,7 @@ export class TaskForm implements OnInit {
 
   /** Managers, admins, and project leads can assign anyone on the team. Contributors assign only themselves (enforced on save + RLS). */
   readonly canAssignOthers = computed(() => {
-    if (this.api.isAdmin()) return true;
+    if (this.api.isAdmin() || this.api.isCsm()) return true;
     if (this.api.isManager()) return true;
     const p = this.project();
     const uid = this.api.user()?.id;
@@ -90,7 +90,7 @@ export class TaskForm implements OnInit {
   private userMayCreateTaskOnProject(project: Project): boolean {
     const uid = this.api.user()?.id;
     if (!uid) return false;
-    if (this.api.isAdmin()) return true;
+    if (this.api.isAdmin() || this.api.isCsm()) return true;
     if (this.api.isManager()) return true;
     if (project.created_by === uid) return true;
     if (project.managers?.some((m) => m.id === uid)) return true;

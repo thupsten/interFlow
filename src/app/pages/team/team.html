@@ -26,6 +26,7 @@
     <select class="form-select filters__select" [ngModel]="selectedRole()" (ngModelChange)="selectedRole.set($event)">
       <option value="all">All Roles</option>
       <option value="admin">Admin</option>
+      <option value="csm">CSM</option>
       <option value="manager">Manager</option>
       <option value="it_manager">IT Manager</option>
       <option value="finance">Finance</option>
@@ -116,6 +117,7 @@
           <label class="form-label">Role <span class="text-danger">*</span></label>
           <select class="form-select" [(ngModel)]="inviteForm.role" name="inviteRole" [disabled]="inviting()">
             <option value="admin">Admin</option>
+            <option value="csm">CSM</option>
             <option value="manager">Manager</option>
             <option value="it_manager">IT Manager</option>
             <option value="finance">Finance</option>
@@ -126,6 +128,10 @@
               @case ('admin') {
                 <i class="bi bi-shield-fill text-danger me-1"></i>
                 Full platform access, can manage all projects and users
+              }
+              @case ('csm') {
+                <i class="bi bi-headset text-danger me-1"></i>
+                Customer Success: same elevated access as admin for day-to-day operations
               }
               @case ('manager') {
                 <i class="bi bi-briefcase-fill text-primary me-1"></i>

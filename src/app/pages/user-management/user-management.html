@@ -24,6 +24,7 @@
     <select class="form-select filters__select" [ngModel]="selectedRole()" (ngModelChange)="selectedRole.set($event); onRoleFilterChange()">
       <option value="all">All Roles</option>
       <option value="admin">Admin</option>
+      <option value="csm">CSM</option>
       <option value="manager">Manager</option>
       <option value="it_manager">IT Manager</option>
       <option value="finance">Finance Manager</option>
@@ -51,6 +52,10 @@
     <div class="stat-box stat-box--admin">
       <span class="stat-box__value">{{ users().filter(u => u.role === 'admin').length }}</span>
       <span class="stat-box__label">Admins</span>
+    </div>
+    <div class="stat-box stat-box--csm">
+      <span class="stat-box__value">{{ users().filter(u => u.role === 'csm').length }}</span>
+      <span class="stat-box__label">CSM</span>
     </div>
     <div class="stat-box stat-box--manager">
       <span class="stat-box__value">{{ users().filter(u => u.role === 'manager').length }}</span>
@@ -245,6 +250,7 @@
           <label class="form-label">Role <span class="text-danger">*</span></label>
           <select class="form-select" [(ngModel)]="inviteForm.role" name="inviteRole" [disabled]="inviting()">
             <option value="admin">Admin</option>
+            <option value="csm">CSM</option>
             <option value="manager">Manager</option>
             <option value="it_manager">IT Manager</option>
             <option value="finance">Finance Manager</option>
@@ -255,6 +261,10 @@
               @case ('admin') {
                 <i class="bi bi-shield-fill text-danger me-1"></i>
                 Full platform access, can manage all projects and users
+              }
+              @case ('csm') {
+                <i class="bi bi-headset text-danger me-1"></i>
+                Customer Success: elevated access like admin for operations and customer-facing work
               }
               @case ('manager') {
                 <i class="bi bi-briefcase-fill text-primary me-1"></i>

@@ -81,7 +81,7 @@
         <div class="project-card" [class.project-card--favorite]="isFavorite(project.id)">
           <div class="project-card__header">
             <div class="project-card__actions">
-              @if (project.visibility === 'restricted' && !api.isAdmin()) {
+              @if (project.visibility === 'restricted' && !api.hasProjectOversight()) {
                 <i class="bi bi-lock-fill text-muted" title="Restricted"></i>
               }
               <button 

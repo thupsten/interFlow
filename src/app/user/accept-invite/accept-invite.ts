@@ -181,6 +181,7 @@ export class AcceptInvite implements OnInit {
   getRoleLabel(role: string): string {
     const labels: Record<string, string> = {
       admin: 'Administrator',
+      csm: 'Customer Success',
       manager: 'Project Manager',
       it_manager: 'IT Manager',
       finance: 'Finance',

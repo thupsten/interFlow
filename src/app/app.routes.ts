@@ -4,6 +4,8 @@ import {
   adminGuard,
   adminManagerOrFinanceGuard,
   adminOrManagerGuard,
+  adminOrManagerOnlyGuard,
+  canCreateProjectGuard,
   userOnlyGuard,
   adminOrItManagerGuard,
   financeGuard,
@@ -72,7 +74,7 @@ export const routes: Routes = [
       {
         path: 'projects/new',
         loadComponent: () => import('./pages/project-form/project-form').then((m) => m.ProjectForm),
-        canActivate: [adminOrManagerGuard], // Admin and Manager can create projects
+        canActivate: [canCreateProjectGuard],
       },
       {
         path: 'projects/:id',
@@ -126,26 +128,26 @@ export const routes: Routes = [
       {
         path: 'interests',
         loadComponent: () => import('./pages/interests/interests').then((m) => m.Interests),
-        canActivate: [adminOrManagerGuard],
+        canActivate: [adminOrManagerOnlyGuard],
       },
 
 
       {
         path: 'team',
         loadComponent: () => import('./pages/team/team').then((m) => m.Team),
-        canActivate: [adminOrManagerGuard],
+        canActivate: [adminOrManagerOnlyGuard],
       },
 
 
       {
         path: 'time-logs',
         loadComponent: () => import('./pages/time-logs/time-logs').then((m) => m.TimeLogs),
-        canActivate: [adminOrManagerGuard],
+        canActivate: [adminOrManagerOnlyGuard],
       },
       {
         path: 'time-logs/:userId',
         loadComponent: () => import('./pages/time-logs/time-logs').then((m) => m.TimeLogs),
-        canActivate: [adminOrManagerGuard],
+        canActivate: [adminOrManagerOnlyGuard],
       },
 
 

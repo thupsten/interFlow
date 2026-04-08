@@ -75,7 +75,7 @@
             <i class="bi bi-flag-fill"></i>
             {{ project()!.priority }}
           </span>
-          @if (project()!.visibility === 'restricted' && !api.isAdmin()) {
+          @if (project()!.visibility === 'restricted' && !api.hasProjectOversight()) {
             <span class="badge bg-dark">
               <i class="bi bi-lock me-1"></i> Restricted
             </span>
@@ -150,6 +150,14 @@
           <span class="tab__count">{{ comments().length }}</span>
         }
       </button>
+      @if (api.isCsm()) {
+        <button class="tab" [class.active]="activeTab() === 'csm_drafts'" (click)="setTab('csm_drafts')">
+          <i class="bi bi-layers me-1"></i> CSM drafts
+          @if (csmDrafts().length > 0) {
+            <span class="tab__count">{{ csmDrafts().length }}</span>
+          }
+        </button>
+      }
       @if (canManage()) {
         <button class="tab" [class.active]="activeTab() === 'interests'" (click)="setTab('interests')">
           <i class="bi bi-hand-index me-1"></i> Interests
@@ -158,7 +166,7 @@
           }
         </button>
       }
-      @if (api.isAdmin() || api.isManager()) {
+      @if (api.isAdmin() || api.isCsm() || api.isManager()) {
         <button class="tab" [class.active]="activeTab() === 'time'" (click)="setTab('time')">
           <i class="bi bi-clock-history me-1"></i> Time Logs
           @if (timeLogs().length > 0) {
@@ -530,6 +538,114 @@
         </div>
       }
 
+      <!-- CSM drafts (CSM only — RLS enforced) -->
+      @if (activeTab() === 'csm_drafts' && api.isCsm()) {
+        <div class="card csm-drafts-panel">
+          <h3 class="card__title">
+            <i class="bi bi-layers me-2"></i> CSM draft workspace
+          </h3>
+          <p class="card__subtitle mb-3">
+            Track multiple planning drafts for this project. Only users with the Customer Success role can see or edit this tab; comments here are separate from the main project discussion.
+          </p>
+
+          <div class="csm-draft-new">
+            <label class="form-label fw-semibold">Add a draft</label>
+            <input
+              type="text"
+              class="form-control mb-2"
+              [(ngModel)]="newCsmDraftTitle"
+              name="newCsmDraftTitle"
+              placeholder="Draft label (e.g. Proposal v1, Scope draft)"
+            />
+            <textarea
+              class="form-control mb-2"
+              [(ngModel)]="newCsmDraftNotes"
+              name="newCsmDraftNotes"
+              rows="2"
+              placeholder="Optional notes for this draft"
+            ></textarea>
+            <button type="button" class="btn btn-primary btn-sm" (click)="submitNewCsmDraft()">
+              <i class="bi bi-plus-lg me-1"></i> Save draft
+            </button>
+          </div>
+
+          @if (csmDraftsLoading()) {
+            <div class="loading-inline py-4 text-center text-muted">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Loading drafts…
+            </div>
+          } @else if (csmDrafts().length === 0) {
+            <div class="empty-box empty-box--sm mt-3">
+              <i class="bi bi-layers"></i>
+              <span>No drafts yet</span>
+              <small>Add your first draft above to start a paper trail for this project.</small>
+            </div>
+          } @else {
+            <div class="csm-draft-list">
+              @for (draft of csmDrafts(); track draft.id) {
+                <div class="csm-draft-card">
+                  <div class="csm-draft-card__head">
+                    <div>
+                      <strong class="csm-draft-card__title">{{ draft.title }}</strong>
+                      <span class="text-muted small ms-2">{{ getTimeAgo(draft.updated_at) }}</span>
+                      @if (draft.creator) {
+                        <span class="small text-muted"> · {{ draft.creator.full_name }}</span>
+                      }
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="deleteCsmDraft(draft)"
+                      title="Delete draft"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                  @if (draft.notes) {
+                    <p class="csm-draft-card__notes">{{ draft.notes }}</p>
+                  }
+                  <div class="csm-draft-comments">
+                    <div class="csm-draft-comments__label small text-muted mb-2">Comments on this draft</div>
+                    @if ((draft.comments ?? []).length === 0) {
+                      <p class="small text-muted mb-2">No comments yet.</p>
+                    } @else {
+                      @for (c of draft.comments!; track c.id) {
+                        <div class="csm-draft-comment">
+                          <span class="avatar avatar-xs">{{ getInitials(c.user?.full_name || '') }}</span>
+                          <div class="csm-draft-comment__body">
+                            <div class="csm-draft-comment__meta">
+                              <strong>{{ c.user?.full_name }}</strong>
+                              <span>{{ getTimeAgo(c.created_at) }}</span>
+                            </div>
+                            <p class="mb-0">{{ c.body }}</p>
+                          </div>
+                        </div>
+                      }
+                    }
+                    <textarea
+                      class="form-control form-control-sm mt-2"
+                      rows="2"
+                      [ngModel]="draftCommentBody(draft.id)"
+                      (ngModelChange)="patchDraftCommentBody(draft.id, $event)"
+                      [name]="'draftComment' + draft.id"
+                      placeholder="Add a comment on this draft…"
+                    ></textarea>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary mt-1"
+                      (click)="postCsmDraftComment(draft.id)"
+                      [disabled]="!draftCommentBody(draft.id).trim()"
+                    >
+                      <i class="bi bi-send me-1"></i> Post
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
       <!-- Interests Tab -->
       @if (activeTab() === 'interests' && canManage()) {
         <div class="card">
@@ -591,7 +707,7 @@
       }
 
       <!-- Time Logs Tab (Admin & Manager) -->
-      @if (activeTab() === 'time' && (api.isAdmin() || api.isManager())) {
+      @if (activeTab() === 'time' && (api.isAdmin() || api.isCsm() || api.isManager())) {
         <div class="card">
           <h3 class="card__title">
             <i class="bi bi-clock-history me-2"></i> Time Logs

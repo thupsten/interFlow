@@ -137,6 +137,7 @@ export class Team implements OnInit {
   getRoleLabel(role: string): string {
     const map: Record<string, string> = {
       admin: 'Admin',
+      csm: 'CSM',
       manager: 'Manager',
       it_manager: 'IT Manager',
       finance: 'Finance',
@@ -148,6 +149,7 @@ export class Team implements OnInit {
   getRoleBadgeClass(role: string): string {
     const map: Record<string, string> = {
       admin: 'danger',
+      csm: 'danger',
       manager: 'primary',
       it_manager: 'info',
       finance: 'success',

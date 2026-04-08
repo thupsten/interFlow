@@ -10,7 +10,16 @@ import { TaskService } from '../../services/task.service';
 import { CommentService } from '../../services/comment.service';
 import { NotificationService } from '../../services/notification.service';
 import { TimeTrackingService } from '../../services/time-tracking.service';
-import type { Project, Task, InterestRequest, Profile, ProjectComment, TimeLog } from '../../interfaces/database.types';
+import { ProjectCsmDraftService } from '../../services/project-csm-draft.service';
+import type {
+  Project,
+  Task,
+  InterestRequest,
+  Profile,
+  ProjectComment,
+  TimeLog,
+  ProjectCsmDraft,
+} from '../../interfaces/database.types';
 
 @Component({
   selector: 'app-project-detail',
@@ -28,6 +37,7 @@ export class ProjectDetail implements OnInit {
   readonly commentService = inject(CommentService);
   readonly notificationService = inject(NotificationService);
   readonly timeTracking = inject(TimeTrackingService);
+  readonly projectCsmDraftService = inject(ProjectCsmDraftService);
   readonly snackbar = inject(SnackbarService);
 
   readonly loading = signal(true);
@@ -37,8 +47,15 @@ export class ProjectDetail implements OnInit {
   readonly comments = signal<ProjectComment[]>([]);
   readonly timeLogs = signal<TimeLog[]>([]);
   readonly hasSubmittedInterest = signal(false);
-  
-  readonly activeTab = signal<'overview' | 'tasks' | 'team' | 'comments' | 'interests' | 'time'>('overview');
+  readonly csmDrafts = signal<ProjectCsmDraft[]>([]);
+  readonly csmDraftsLoading = signal(false);
+  newCsmDraftTitle = '';
+  newCsmDraftNotes = '';
+  readonly draftCommentText = signal<Record<string, string>>({});
+
+  readonly activeTab = signal<
+    'overview' | 'tasks' | 'team' | 'comments' | 'csm_drafts' | 'interests' | 'time'
+  >('overview');
   readonly showAdminMenu = signal(false);
   
   newComment = '';
@@ -58,8 +75,10 @@ export class ProjectDetail implements OnInit {
     return project.contributors?.some((c: Profile) => c.id === userId);
   });
 
-  /** Approved contributors and managers can add tasks on the project. */
-  readonly canCreateTask = computed(() => this.canManage() || this.isContributor());
+  /** Contributors, managers/creator, admin, or CSM (coordination) can add tasks. */
+  readonly canCreateTask = computed(
+    () => this.canManage() || this.isContributor() || this.api.isCsm(),
+  );
 
   readonly taskStats = computed(() => {
     const allTasks = this.tasks();
@@ -95,7 +114,7 @@ export class ProjectDetail implements OnInit {
   });
 
   readonly canComment = computed(() => {
-    if (this.api.isAdmin() || this.api.isManager()) return true;
+    if (this.api.isAdmin() || this.api.isCsm() || this.api.isManager()) return true;
     return this.isContributor();
   });
 
@@ -118,7 +137,7 @@ export class ProjectDetail implements OnInit {
     if (!id) return;
 
     try {
-      const includeArchived = this.api.isAdmin();
+      const includeArchived = this.api.hasProjectOversight();
       const [project, tasks, comments] = await Promise.all([
         this.projectService.getProjectById(id, includeArchived),
         this.taskService.getTasks(id),
@@ -145,23 +164,115 @@ export class ProjectDetail implements OnInit {
         }
       }
 
-      // Load interests if manager/admin
-      if (this.api.isAdmin() || this.api.isManager()) {
+      // Load interests if manager / admin / CSM
+      if (this.api.isAdmin() || this.api.isCsm() || this.api.isManager()) {
         const allInterests = await this.projectService.getProjectInterests(id);
         this.interests.set(allInterests);
       }
-      // Load time logs if admin/manager
-      if (this.api.isAdmin() || this.api.isManager()) {
+      // Load time logs if admin / CSM / manager
+      if (this.api.isAdmin() || this.api.isCsm() || this.api.isManager()) {
         const logs = await this.timeTracking.getProjectTimeLogs(id).catch(() => []);
         this.timeLogs.set(logs);
+      }
+      if (this.api.isCsm()) {
+        void this.loadCsmDrafts(id);
       }
     } finally {
       this.loading.set(false);
     }
   }
 
-  setTab(tab: 'overview' | 'tasks' | 'team' | 'comments' | 'interests' | 'time'): void {
+  setTab(
+    tab: 'overview' | 'tasks' | 'team' | 'comments' | 'csm_drafts' | 'interests' | 'time',
+  ): void {
     this.activeTab.set(tab);
+    if (tab === 'csm_drafts' && this.api.isCsm()) {
+      const pid = this.project()?.id;
+      if (pid) void this.loadCsmDrafts(pid);
+    }
+  }
+
+  async loadCsmDrafts(projectId: string): Promise<void> {
+    this.csmDraftsLoading.set(true);
+    try {
+      const list = await this.projectCsmDraftService.listByProject(projectId);
+      this.csmDrafts.set(list);
+    } catch {
+      this.snackbar.error('Could not load CSM drafts');
+      this.csmDrafts.set([]);
+    } finally {
+      this.csmDraftsLoading.set(false);
+    }
+  }
+
+  async submitNewCsmDraft(): Promise<void> {
+    const project = this.project();
+    const title = this.newCsmDraftTitle.trim();
+    if (!project || !title) {
+      this.snackbar.error('Enter a draft title');
+      return;
+    }
+    try {
+      const sortOrder = this.csmDrafts().length;
+      const draft = await this.projectCsmDraftService.createDraft(
+        project.id,
+        title,
+        this.newCsmDraftNotes.trim() || null,
+        sortOrder,
+      );
+      const me = this.api.profile();
+      const withCreator =
+        me && draft.created_by === me.id ? { ...draft, creator: me } : draft;
+      this.csmDrafts.update((list) => [...list, withCreator]);
+      this.newCsmDraftTitle = '';
+      this.newCsmDraftNotes = '';
+      this.snackbar.success('Draft added');
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as { message: string }).message)
+          : 'Failed to add draft';
+      this.snackbar.error(msg);
+    }
+  }
+
+  async deleteCsmDraft(draft: ProjectCsmDraft): Promise<void> {
+    if (!confirm(`Delete draft "${draft.title}" and all its comments?`)) return;
+    try {
+      await this.projectCsmDraftService.deleteDraft(draft.id);
+      this.csmDrafts.update((list) => list.filter((d) => d.id !== draft.id));
+      this.draftCommentText.update((m) => {
+        const next = { ...m };
+        delete next[draft.id];
+        return next;
+      });
+    } catch {
+      this.snackbar.error('Failed to delete draft');
+    }
+  }
+
+  draftCommentBody(draftId: string): string {
+    return this.draftCommentText()[draftId] ?? '';
+  }
+
+  patchDraftCommentBody(draftId: string, value: string): void {
+    this.draftCommentText.update((m) => ({ ...m, [draftId]: value }));
+  }
+
+  async postCsmDraftComment(draftId: string): Promise<void> {
+    const body = (this.draftCommentText()[draftId] ?? '').trim();
+    if (!body) return;
+    try {
+      const row = await this.projectCsmDraftService.addComment(draftId, body);
+      this.csmDrafts.update((list) =>
+        list.map((d) =>
+          d.id === draftId ? { ...d, comments: [...(d.comments ?? []), row] } : d,
+        ),
+      );
+      this.patchDraftCommentBody(draftId, '');
+    } catch {
+      this.snackbar.error('Failed to post comment');
+    }
   }
 
   getTimeLogUserName(log: TimeLog): string {
@@ -278,7 +389,7 @@ export class ProjectDetail implements OnInit {
       // Reload project to get updated contributors
       const id = this.project()?.id;
       if (id) {
-        const project = await this.projectService.getProjectById(id, this.api.isAdmin());
+        const project = await this.projectService.getProjectById(id, this.api.hasProjectOversight());
         this.project.set(project);
       }
     } catch {

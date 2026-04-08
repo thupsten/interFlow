@@ -43,7 +43,7 @@ export class Dashboard implements OnInit {
 
     if (role === 'admin') {
       this.router.navigate(['/dashboard/admin'], { replaceUrl: true });
-    } else if (role === 'manager') {
+    } else if (role === 'csm' || role === 'manager') {
       this.router.navigate(['/dashboard/manager'], { replaceUrl: true });
     } else if (role === 'it_manager') {
       this.router.navigate(['/dashboard/it-manager'], { replaceUrl: true });
